@@ -16,7 +16,6 @@ const routes = [
     {
         name: '登录',
         path: '/login',
-        // component: () => import('@/views/login/LoginView.vue'),
         component: resolve => require(['@/views/login/LoginView.vue'], resolve),
         meta: {
             title: '登录',

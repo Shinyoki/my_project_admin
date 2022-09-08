@@ -22,7 +22,9 @@ import myConfig from "@/assets/js/myConfig"
 // dayJS
 import dayjs from "dayjs";
 // Cookie API
-import {getToken, TokenPrefix} from "@/assets/js/utils/token-util";
+import {getToken} from "@/assets/js/utils/token-util";
+// iconfont
+import "./assets/css/iconfont/iconfont.css"
 
 /**
  * Router跳转
@@ -51,9 +53,12 @@ Axios.defaults.headers['Content-Type'] = "application/json;charset=utf-8"
 Axios.interceptors.request.use(
     // 原始发送
     config => {
-        if ( getToken() && (config.headers || {}).ignoreToken === false) {
+        // 是否需要携带TOKEN
+        const requireToken = (config.headers || {}).requireToken === false
+        if (getToken() && !requireToken) {
             // 从cookie中获取Token
-            config.headers["Authorization"] = TokenPrefix + getToken()
+            config.headers["Authorization"] = getToken()
+            console.log("夹带TOKEN：" + getToken())
         }
 
         // 进度条开始加载

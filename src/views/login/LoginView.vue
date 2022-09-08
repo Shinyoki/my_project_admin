@@ -82,9 +82,11 @@ export default {
             this.loading = false
             if (res.data.flag) {
 
-              // TODO 登录成功，查询用户信息
-
+              // 登录成功，设置路由等信息
+              this.$store.dispatch("loadRoutes")
+              // push到主页
               this.$router.push({path: '/'})
+
             } else {
               this.$message.error(res.data.message)
             }
