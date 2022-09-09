@@ -4,7 +4,7 @@ import Vuex from 'vuex'
 import vuexPersistedstate from "vuex-persistedstate";
 // 导入自定义模块
 import user from "@/store/modules/user";
-import historyBar from "@/store/modules/historyBar";
+import history from "@/store/modules/history";
 import getters from "@/store/getters";
 
 Vue.use(Vuex)
@@ -13,7 +13,7 @@ export default new Vuex.Store({
     // 模块化不同组的数据
     modules: {
         user,
-        historyBar
+        history
     },
     // 简化获取操作
     getters,

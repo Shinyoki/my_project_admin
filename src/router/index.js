@@ -3,11 +3,18 @@ import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)
 
-const routes = [
+export const routes = [
     {
         name: '主页',
         path: '/',
         component: resolve => require(['@/layout/index.vue'], resolve),
+        children: [
+            {
+                path: '/',
+                name: '主页',
+                component: resolve => require(['@/views/home/index.vue'], resolve),
+            }
+        ],
         meta: {
             title: '首页',
             tokenNeeded: true
@@ -42,8 +49,8 @@ const newRouter = () => new VueRouter({
  * @returns {VueRouter}
  */
 export function refreshRouter() {
-    const router = newRouter()
-    router.matcher = newRouter().matcher
+    const newRouter = newRouter()
+    router.matcher = newRouter.matcher
 }
 
 const router = newRouter()

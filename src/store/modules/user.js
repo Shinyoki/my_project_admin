@@ -30,7 +30,7 @@ const user = {
             state.avatar = ''
             state.token = ''
             state.roles = null
-            removeToken()
+            removeToken();
         },
         // 登录
         doLogin: (state, userInfo) => {

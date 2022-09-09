@@ -1,12 +1,12 @@
 <template>
   <div>
-    Home
+    顶栏
   </div>
 </template>
 
 <script>
 export default {
-  name: 'IndexView',
+  name: 'TopNavBar',
   created() {
   },
   mounted() {

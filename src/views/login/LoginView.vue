@@ -5,7 +5,7 @@
           id="login_card"
           class="animate__animated animate__bounceInRight"
       >
-        <div style="margin-top: 20px;font-size: 1.3rem; text-align: center">
+        <div style="margin: 30px 0;font-size: 1.3rem; text-align: center">
           <i class="el-icon-user-solid"/>
           <strong> 登录</strong>
         </div>
@@ -14,18 +14,20 @@
             :rules="loginRules"
             ref="myForm"
         >
-          <el-form-item label="用户名" prop="username" style="margin-top: 20px;margin-bottom: 5px;">
+          <el-form-item prop="username" style="margin: 20px 0;">
             <el-input
+                prefix-icon="el-icon-user"
                 v-model="loginForm.username"
-                placeholder="请输入用户名"
+                placeholder="用户名"
                 clearable
                 @keyup.enter.native="login"
             />
           </el-form-item>
-          <el-form-item label="密码" prop="password">
+          <el-form-item prop="password" >
             <el-input
+                prefix-icon="el-icon-lock"
                 v-model="loginForm.password"
-                placeholder="请输入密码"
+                placeholder="密码"
                 clearable
                 show-password
                 @keyup.enter.native="login"
@@ -48,6 +50,10 @@
 </template>
 
 <script>
+import {generateMenus} from "@/assets/js/utils/menus";
+import store from "@/store";
+import {getToken, removeToken} from "@/assets/js/utils/token-util";
+
 export default {
   name: 'LoginView',
   created() {
@@ -83,12 +89,18 @@ export default {
             if (res.data.flag) {
 
               // 登录成功，设置路由等信息
-              this.$store.dispatch("loadRoutes")
+              // 清空历史记录
+              store.commit("refreshHistory");
+              generateMenus()
+
               // push到主页
               this.$router.push({path: '/'})
 
             } else {
-              this.$message.error(res.data.message)
+              if (getToken()) {
+                removeToken();
+              }
+              this.$message.error(res.data.message);
             }
 
           });

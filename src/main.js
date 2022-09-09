@@ -39,6 +39,7 @@ router.beforeEach((to, from, next) => {
         // 无token则跳转到登录页
         next('/login');
     }
+
     next();
 });
 router.afterEach((to) => {
@@ -58,7 +59,6 @@ Axios.interceptors.request.use(
         if (getToken() && !requireToken) {
             // 从cookie中获取Token
             config.headers["Authorization"] = getToken()
-            console.log("夹带TOKEN：" + getToken())
         }
 
         // 进度条开始加载

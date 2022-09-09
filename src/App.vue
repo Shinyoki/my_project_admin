@@ -5,37 +5,45 @@
 </template>
 
 <script>
-import {getToken} from "@/assets/js/utils/token-util";
+import {generateMenus} from "@/assets/js/utils/menus";
+
+// import Layout from "@/layout";
+// import Setting from "@/views/setting/Setting";
+
 export default {
   name: 'App',
   created() {
-
+    generateMenus();
+    // let route = {
+    //   name: '首页',
+    //   path: '/',
+    //   component: Layout,
+    //   children: [
+    //     // {
+    //     //   name: '日志',
+    //     //   path: '/log',
+    //     //   component: null,
+    //     //   children: [
+    //         {
+    //           name: '操作日志',
+    //           path: '/optLog',
+    //           component: resolve => require(['@/views/log/OptLog.vue'], resolve)
+    //         },
+    //     {
+    //       name: '登录日志',
+    //       path: '/loginLog',
+    //       component: resolve => require(['@/views/log/LoginLog.vue'], resolve)
+    //     }
+    //       // ]
+    //     // }
+    //   ]
+    // }
+    // console.log("添加前")
+    // console.log(this.$router.getRoutes())
+    // // this.$router.addRoute(route)
+    // console.log("添加后")
+    // console.log(this.$router.getRoutes())
   },
-  methods: {
-    checkValid() {
-      var token = getToken();
-      if (this.$route.name != '登录' && token && token.trim().length > 0) {
-        // token 存在，校验token是否有效
-        let data = {
-          token: token
-        }
-        let header = {
-          ignoreToken: true
-        }
-        this.postRequest("validToken", data, header).then(res => {
-          if (res.data.code == 4001) {
-            // token 无效，友好提示是否要跳转
-            this.$confirm('检测到您的登录状态已过期，是否要重新登录？', '提示', {
-              confirmButtonText: '确定',
-              cancelButtonText: '取消',
-              type: 'warning'
-            }).then(() => {
-              this.$router.push({name: '登录'})
-            })
-          }
-        })
-      }
-    },
-  }
+  methods: {}
 }
 </script>

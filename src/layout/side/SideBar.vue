@@ -1,12 +1,12 @@
 <template>
-  <div>
-    Home
-  </div>
+  <el-header>
+    侧边栏
+  </el-header>
 </template>
 
 <script>
 export default {
-  name: 'IndexView',
+  name: 'SideBar',
   created() {
   },
   mounted() {
