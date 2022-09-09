@@ -1,25 +1,32 @@
 <template>
+
   <el-container>
-    <el-aside>
-      <SideBar/>
+<!--    侧边栏-->
+    <el-aside width="auto">
+      <SideBar />
     </el-aside>
-    <el-container>
-      <TopNavBar :key="$route.fullPath"/>
+<!--    右侧容器-->
+    <el-container style="min-height: 100vh">
+      <el-header>
+<!--        顶部标题-->
+        <TopNavBar :key="$route.fullPath"/>
+      </el-header>
       <el-main>
-        <keep-alive>
-<!--          transition动画：https://blog.csdn.net/Superman_H/article/details/122851610 -->
-          <transition name="fade-transform" mode="out-in">
-            <router-view :key="$route.fullPath"/>
-          </transition>
-        </keep-alive>
+<!--        主体内容-->
+        <!-- transition动画：https://blog.csdn.net/Superman_H/article/details/122851610  -->
+        <transition name="fade-transform" mode="out-in">
+          <router-view :key="$route.fullPath"/>
+        </transition>
       </el-main>
     </el-container>
   </el-container>
+
 </template>
 
 <script>
 import SideBar from "@/layout/side/SideBar";
 import TopNavBar from "@/layout/right/TopNavBar";
+
 export default {
   name: 'HomeView',
   components: {TopNavBar, SideBar},
@@ -36,22 +43,16 @@ export default {
 </script>
 
 <style scoped>
-.main-container {
-  transition: margin-left 0.45s;
-  margin-left: 210px;
-  min-height: 100vh;
-}
-.hideSideBar {
-  margin-left: 64px;
-}
 .fade-transform-enter-active,
 .fade-transform-leave-active {
   transition: all 0.5s ease 0s;
 }
+
 .fade-transform-enter {
   opacity: 0;
   transform: translateX(-30px);
 }
+
 .fade-transform-leave-to {
   opacity: 0;
   transform: translateX(30px);

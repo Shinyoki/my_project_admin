@@ -25,6 +25,8 @@ import dayjs from "dayjs";
 import {getToken} from "@/assets/js/utils/token-util";
 // iconfont
 import "./assets/css/iconfont/iconfont.css"
+// 折叠菜单
+import Fragment from 'vue-fragment'
 
 /**
  * Router跳转
@@ -113,6 +115,7 @@ Axios.interceptors.response.use(
 Vue.config.productionTip = false
 
 Vue.use(ElementUI)
+Vue.use(Fragment.Plugin)
 Vue.use(VueAxios, Axios)
 Vue.prototype.getRequest = getRequest;
 Vue.prototype.postRequest = postRequest;

@@ -5,7 +5,8 @@ const getters = {
     token: state => state.user.token,
     history: state => state.history.history,
     menus: state => state.history.menus,
-    routes: state => state.history.routes
+    routes: state => state.history.routes,
+    isCollapsed: state => state.history.isCollapsed
 }
 
 export default getters

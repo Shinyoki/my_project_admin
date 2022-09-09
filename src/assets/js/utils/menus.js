@@ -43,19 +43,19 @@ function buildRoutes(menus) {
     // 遍历菜单，添加路由
     menus.forEach(menu => {
 
-        // 让category的Component为Layout，之后遍历树的所有节点，将menu设置为Layout的children
+        // 设置顶层菜单
         let route = {
             path: menu.path,
             name: menu.name,
-            component: loadView(menu),
+            component: Layout,
             children: [],
             meta: {
                 title: menu.name,
             }
         };
+        addChildForTopMenu(menu, route);
         if (menu.children && menu.children.length > 0) {
             let child = findChildrenRoutes(menu.children);
-            console.log(child)
             route.children.push(...child);
         }
         // 添加路由
@@ -79,7 +79,6 @@ function findChildrenRoutes(routes) {
                     title: item.name
                 }
             }
-            console.log(route)
             res.push(route);
         } else {
             if (item.children != null && item.children.length > 0) {
@@ -101,3 +100,18 @@ export const loadView = view => {
     }
     return resolve => require([`@/views${view.component}.vue`], resolve)
 };
+
+function addChildForTopMenu(menu, route) {
+    if (menu.component != "Layout") {
+        // 没有表明自己是Layout，说明自己是正儿八经的菜单，于是将自己的组件注册为child
+        let child = {
+            name: menu.name,
+            path: menu.path,
+            component: resolve => require([`@/views${menu.component}.vue`], resolve),
+            meta: {
+                title: menu.name
+            }
+        }
+        route.children.push(child)
+    }
+}

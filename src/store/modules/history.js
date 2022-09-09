@@ -1,9 +1,14 @@
 
 const history = {
     state: {
+        // 顶端栏的点击记录
         history: [{path: '/', name: '首页'}],
+        // 后端传回的菜单 缓存
         menus: [],
+        // 生成的路由
         routes: [],
+        // 侧边栏的开合状态
+        isCollapsed: false
     },
     mutations: {
         // 重置添加历史记录
@@ -46,6 +51,10 @@ const history = {
         setRoutes(state, routes) {
             state.routes = routes
         },
+        // 修改开合状态
+        changeCollapse(state) {
+            state.isCollapsed = !state.isCollapsed
+        }
     },
     actions: {
 

@@ -1,5 +1,5 @@
 <template>
-  <div>LoginLog</div>
+  <div>OptLogin</div>
 </template>
 
 <script>

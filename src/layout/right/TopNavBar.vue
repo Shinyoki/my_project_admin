@@ -1,6 +1,12 @@
 <template>
   <div>
     顶栏
+    <el-button
+      type="primary"
+      @click="changeCollapse"
+      >
+      点击
+    </el-button>
   </div>
 </template>
 
@@ -14,7 +20,11 @@ export default {
   data() {
     return {}
   },
-  methods: {},
+  methods: {
+    changeCollapse() {
+      this.$store.commit("changeCollapse")
+    },
+  },
   computed: {},
 }
 </script>
