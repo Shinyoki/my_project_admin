@@ -1,3 +1,5 @@
+import router from "@/router";
+
 const history = {
     state: {
         // 顶端栏的点击记录
@@ -15,25 +17,23 @@ const history = {
         // 重置添加历史记录
         refreshHistory(state) {
             state.history = [{path: '/', name: '首页'}]
+            router.push({path: '/'})
         },
         // 添加历史记录
         addHistory(state, {path, name}) {
-            // 查找是否重复，重复则删掉之后的记录
+            // 查找是否重复，重复则啥也不做
             let index = state.history.findIndex((history) => history.path == path);
-            if (-1 != index && index != state.history.length - 1) {
-                // 存在，则删除
-                state.history.splice(index + 1);
+            if (index == -1) {
+                state.history.push({path, name})
             } else {
-                // 不存在，则添加
-                state.history.push({path, name});
+                // ignored
             }
         },
         // 删除历史记录
         removeHistory(state, {path}) {
             let index = state.history.findIndex((history) => history.path == path);
-            if (-1 != index) {
-                // 存在，则删除
-                state.history.splice(index);
+            if (index != -1) {
+                state.history.splice(index, 1)
             }
         },
         // 重置 菜单

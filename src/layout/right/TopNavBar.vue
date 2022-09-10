@@ -56,7 +56,7 @@
             <el-avatar
                 class="user-dropdown-item"
                 :src="$store.getters.avatar"
-                size="big"
+                size="large"
                 style="margin-right: 5px;"/>
             <i class="user-dropdown-item el-icon-arrow-down el-icon--right"/>
           </span>
@@ -69,8 +69,34 @@
     </div>
 
     <div class="second-header-container">
-<!--      TODO 历史记录-->
+<!--      历史记录-->
+      <div>
+        <el-button
+            v-for="(item, index) of $store.getters.history"
+            :key="index"
+            :type="item.path === $route.path ? 'primary' : ''"
+            size="mini"
+            @click="$router.push({path: item.path})"
+            :icon="curIcon(item.path)"
+        >
+          {{ item.name }}
+          <i
+              class="iconfont icon-cuowu close-icon"
+              @click="removeHistory(item)"
+              style="font-size: small; position: relative; top: 1px;"
+              v-if="$route.path !== item.path"
+          />
+        </el-button>
+      </div>
+      <div style="margin-left: auto">
+        <el-button
+          @click="refreshHistory"
+          size="mini"
+          plain
+          >关闭全部</el-button>
+      </div>
     </div>
+
   </div>
 
 </template>
@@ -89,7 +115,8 @@ function isCategory(menu) {
 export default {
   name: 'TopNavBar',
   created() {
-    this.getBreadList()
+    this.getBreadList();
+    this.$store.commit("addHistory", this.$route)
   },
   mounted() {
     this.init()
@@ -107,6 +134,13 @@ export default {
     }
   },
   methods: {
+    // 清除历史记录
+    refreshHistory() {
+      this.$store.commit("refreshHistory")
+    },
+    removeHistory(menu) {
+      this.$store.commit("removeHistory", menu)
+    },
     // 退出登录
     handleLogout() {
       this.$confirm('确定退出登录吗?', '提示', {
@@ -250,13 +284,23 @@ export default {
     fullScreenClass() {
       return this.isFullScreenClass ? 'icon-tuichuquanping' : 'icon-quanping'
     },
+    curIcon() {
+      return path => {
+        if (path === this.$route.path) {
+          return 'el-icon-location'
+        } else {
+          return ''
+        }
+      }
+    },
   },
 }
 </script>
 
 <style scoped>
 .header-container {
-  /*height: 50px;*/
+  padding-bottom: 10px;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 }
 
 .top-header-container {
@@ -348,6 +392,15 @@ export default {
 .user-dropdown-item {
   cursor: pointer;
 }
-
-
+/*历史记录*/
+.second-header-container {
+  margin: 0 10px;
+  display: flex;
+}
+.close-icon {
+  transition: all .5s;
+}
+.close-icon:hover {
+  color: #EF5350;
+}
 </style>

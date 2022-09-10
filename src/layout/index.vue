@@ -2,7 +2,7 @@
 
   <el-container>
     <!--    侧边栏-->
-    <el-aside width="auto">
+    <el-aside width="auto" style="box-shadow: 2px 0 6px rgba(0,21,41,.35); z-index: 1">
       <SideBar/>
     </el-aside>
     <!--    右侧容器-->
@@ -11,7 +11,7 @@
         <!--        顶部标题-->
         <TopNavBar :key="$route.fullPath"/>
       </el-header>
-      <el-main>
+      <el-main style="background-color: #F7F9FB; z-index: -1">
         <!--        主体内容-->
         <!-- transition动画：https://blog.csdn.net/Superman_H/article/details/122851610  -->
         <transition name="fade-transform" mode="out-in">

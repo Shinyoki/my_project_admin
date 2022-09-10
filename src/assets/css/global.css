@@ -36,3 +36,7 @@ html{
   background-color: #F5F5F5;
 }
 
+/*改善侧边框menu会多出1px的问题*/
+.el-menu-vertical-demo.el-menu {
+  border: 0;
+}
