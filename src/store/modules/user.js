@@ -1,6 +1,5 @@
 import {getToken, removeToken, setToken} from "@/assets/js/utils/token-util";
 import {postRequest} from "@/assets/js/utils/axios-api";
-import {refreshRouter} from "@/router";
 import axios from "axios";
 
 const user = {
@@ -30,6 +29,11 @@ const user = {
             state.avatar = ''
             state.token = ''
             state.roles = null
+            state.isCollapsed = false
+            state.breadList = [{name: '首页', path: '/', menuType: 1}]
+            state.history = [{path: '/', name: '首页'}]
+            state.menus = []
+            state.routes = []
             removeToken();
         },
         // 登录
@@ -71,15 +75,13 @@ const user = {
             });
         },
         // 登出
-        logout(state) {
+        doLogout(state) {
             return new Promise((resolve, reject) => {
                 postRequest("/logout")
                     .then(res => {
                         if (res.data.flag) {
-                            // 清空路由
-                            refreshRouter();
                             // 清空历史记录
-                            state.commit("refreshHistoryBar")
+                            state.commit("refreshHistory")
                             // 清空菜单
                             state.commit("refreshMenus")
                             // 提交登出请求

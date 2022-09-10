@@ -28,6 +28,15 @@ export const routes = [
             title: '登录',
             tokenNeeded: false
         }
+    },
+    {
+        name: '啥也没有',
+        path: '/404',
+        component: resolve => require(['@/views/Global404.vue'], resolve),
+        meta: {
+            title: '404NotFound',
+            tokenNeeded: false
+        }
     }
 ]
 

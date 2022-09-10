@@ -27,6 +27,7 @@ import {getToken} from "@/assets/js/utils/token-util";
 import "./assets/css/iconfont/iconfont.css"
 // 折叠菜单
 import Fragment from 'vue-fragment'
+import {Notification} from "element-ui";
 
 /**
  * Router跳转
@@ -38,6 +39,7 @@ router.beforeEach((to, from, next) => {
         // 有token则直接访问
         next();
     } else if (token == null) {
+        Notification.warning("您还没有登录呢~");
         // 无token则跳转到登录页
         next('/login');
     }

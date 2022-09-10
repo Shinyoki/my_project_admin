@@ -52,10 +52,10 @@ export default {
   },
   methods: {
     notHidden(menu) {
-      return menu.isHidden != true
+      return menu.isHidden === 0
     },
     isCategory(menu) {
-      return menu.menuType == 0;
+      return menu.menuType === 0;
     },
   },
   computed: {
