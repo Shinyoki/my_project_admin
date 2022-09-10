@@ -1,18 +1,18 @@
 <template>
 
   <el-container>
-<!--    侧边栏-->
+    <!--    侧边栏-->
     <el-aside width="auto">
-      <SideBar />
+      <SideBar/>
     </el-aside>
-<!--    右侧容器-->
+    <!--    右侧容器-->
     <el-container style="min-height: 100vh">
-      <el-header>
-<!--        顶部标题-->
+      <el-header style="height: auto; padding: 0">
+        <!--        顶部标题-->
         <TopNavBar :key="$route.fullPath"/>
       </el-header>
       <el-main>
-<!--        主体内容-->
+        <!--        主体内容-->
         <!-- transition动画：https://blog.csdn.net/Superman_H/article/details/122851610  -->
         <transition name="fade-transform" mode="out-in">
           <router-view :key="$route.fullPath"/>

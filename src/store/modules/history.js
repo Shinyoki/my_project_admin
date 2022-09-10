@@ -1,8 +1,9 @@
-
 const history = {
     state: {
         // 顶端栏的点击记录
         history: [{path: '/', name: '首页'}],
+        // 面包屑内容
+        breadList: [{name: '首页', path: '/', menuType: 1}],
         // 后端传回的菜单 缓存
         menus: [],
         // 生成的路由
@@ -54,11 +55,21 @@ const history = {
         // 修改开合状态
         changeCollapse(state) {
             state.isCollapsed = !state.isCollapsed
+        },
+        // 重置面包屑
+        refreshBreadList(state) {
+            state.breadList = [{name: '首页', path: '/', menuType: 1}]
+        },
+        // 添加面包屑
+        addBread(state, bread) {
+            // 触发
+            state.breadList.push(bread)
+        },
+        addBreadList(state, breads) {
+            state.breadList.push(...breads)
         }
     },
-    actions: {
-
-    }
+    actions: {}
 }
 
 export default history;
