@@ -7,11 +7,11 @@
     </el-aside>
     <!--    右侧容器-->
     <el-container style="min-height: 100vh">
-      <el-header style="height: auto; padding: 0">
+      <el-header style="height: auto; padding: 0; z-index: 1">
         <!--        顶部标题-->
         <TopNavBar :key="$route.fullPath"/>
       </el-header>
-      <el-main style="background-color: #F7F9FB; z-index: -1">
+      <el-main style="background-color: #F7F9FB;">
         <!--        主体内容-->
         <!-- transition动画：https://blog.csdn.net/Superman_H/article/details/122851610  -->
         <transition name="fade-transform" mode="out-in">

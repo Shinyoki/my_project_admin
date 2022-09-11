@@ -28,6 +28,8 @@ import "./assets/css/iconfont/iconfont.css"
 // 折叠菜单
 import Fragment from 'vue-fragment'
 import {Notification} from "element-ui";
+// 构建树形结构
+import {handleTree} from "@/assets/js/utils/menus";
 
 /**
  * Router跳转
@@ -85,8 +87,9 @@ function handleError(status, message) {
     }
     if (status == 401) {
         // 未登录
-        store.dispatch("clearLoginUserCache").then(() => {
-            router.push({name: '/login'});
+        store.dispatch("doLogout").then(() => {
+            Notification.warning("登录已过期，请重新登录~");
+            router.push({path: '/login'});
         });
     } else if (status == 404) {
         // 404
@@ -100,9 +103,9 @@ Axios.interceptors.response.use(
         NProgress.done();
         if (response.data.flag) {
             // 响应为 true， 一切正常
-        } else if (response.data.flag != undefined && response.data.flag == false) {
+        } else if (response.data.flag !== undefined && response.data.flag === false) {
             // 请求失败
-            handleError(response.status, response.data.message);
+            handleError(response.data.code, response.data.message);
         }
 
         return response;
@@ -125,6 +128,7 @@ Vue.prototype.putRequest = putRequest;
 Vue.prototype.deleteRequest = deleteRequest;
 Vue.prototype.$dayjs = dayjs;
 Vue.prototype.myConfig = myConfig
+Vue.prototype.handleTree = handleTree
 
 /**
  * dayJs 实现的过滤器

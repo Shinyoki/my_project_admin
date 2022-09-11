@@ -299,7 +299,6 @@ export default {
 
 <style scoped>
 .header-container {
-  padding-bottom: 10px;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 }
 
@@ -326,25 +325,6 @@ export default {
 .top-right-side-icon:hover {
   background-color: #f5f7fa;
   border-radius: 4px;
-}
-
-/*给breadcrumb transition group加上过渡动画*/
-.breadcrumb-enter-active,
-.breadcrumb-leave-active {
-  transition: all .5s;
-}
-
-.breadcrumb-enter {
-  opacity: 0;
-  transform: translateX(20px);
-}
-
-.breadcrumb-move {
-  transition: all .5s;
-}
-
-.breadcrumb-leave-active {
-  position: absolute;
 }
 
 /*面包屑breadcrumb-container占据所有元素*/
@@ -394,8 +374,11 @@ export default {
 }
 /*历史记录*/
 .second-header-container {
-  margin: 0 10px;
   display: flex;
+  padding: 10px 10px;
+  border-bottom: none;
+/*  给上方添加阴影，下方没有阴影*/
+  box-shadow: 0 1px 4px  rgba(0, 21, 41, 0.08);
 }
 .close-icon {
   transition: all .5s;

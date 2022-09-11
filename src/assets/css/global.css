@@ -40,3 +40,8 @@ html{
 .el-menu-vertical-demo.el-menu {
   border: 0;
 }
+
+/*每个页面容器默认的样式*/
+.main-container {
+  padding: 20px;
+}

@@ -5,7 +5,7 @@ import store from "@/store"
 import Vue from "vue"
 
 export function generateMenus() {
-    getRequest("/admin/menus").then(res => {
+    getRequest("/admin/user/menus").then(res => {
         if (res.data.flag) {
 
             // 清空菜单
@@ -118,4 +118,56 @@ function addChildForTopMenu(menu, route) {
         }
         route.children.push(child)
     }
+}
+
+/**
+ * 将tb_menu的字段转换成树形结构
+ * @param data          字段集合
+ * @param id            字段的id名      默认id
+ * @param parentId      字段的父id名    默认为parentId
+ * @param children      字段的子集合名   默认'children'
+ * @returns {*[]}
+ */
+export function handleTree(data, id, parentId, children) {
+    let config = {
+        id: id || 'id',
+        parentId: parentId || 'parentId',
+        childrenList: children || 'children'
+    };
+
+    var childrenListMap = {};
+    var nodeIds = {};
+    var tree = [];
+
+    for (let d of data) {
+        let parentId = d[config.parentId];
+        if (childrenListMap[parentId] == null) {
+            childrenListMap[parentId] = [];
+        }
+        nodeIds[d[config.id]] = d;
+        childrenListMap[parentId].push(d);
+    }
+
+    for (let d of data) {
+        let parentId = d[config.parentId];
+        if (nodeIds[parentId] == null) {
+            tree.push(d);
+        }
+    }
+
+    for (let t of tree) {
+        adaptToChildrenList(t);
+    }
+
+    function adaptToChildrenList(o) {
+        if (childrenListMap[o[config.id]] !== null) {
+            o[config.childrenList] = childrenListMap[o[config.id]];
+        }
+        if (o[config.childrenList]) {
+            for (let c of o[config.childrenList]) {
+                adaptToChildrenList(c);
+            }
+        }
+    }
+    return tree;
 }
