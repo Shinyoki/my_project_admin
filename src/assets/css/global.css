@@ -16,6 +16,12 @@ html{
 .el-notification__content{
   margin-top: 0 !important;
 }
+/**
+* 快捷样式
+ */
+.ml-auto {
+  margin-left: auto;
+}
 
 /**
 滚动条样式
@@ -44,4 +50,9 @@ html{
 /*每个页面容器默认的样式*/
 .main-container {
   padding: 20px;
+}
+
+/*操作栏*/
+.operation-container {
+  display: flex;
 }

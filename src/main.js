@@ -41,9 +41,16 @@ router.beforeEach((to, from, next) => {
         // 有token则直接访问
         next();
     } else if (token == null) {
-        Notification.warning("您还没有登录呢~");
-        // 无token则跳转到登录页
-        next('/login');
+        let item = sessionStorage.getItem("login");
+        if (!item) {
+            // 还没登录过
+            sessionStorage.setItem("login", '1');
+            next('/login');
+        } else {
+            Notification.warning("重新登录一下吧~");
+            next('/login');
+        }
+
     }
 
     next();
@@ -135,13 +142,13 @@ Vue.prototype.handleTree = handleTree
  * 使用方法 {{ dateStr | date }}
  */
 Vue.filter("date", (dateStr, format = "YYYY-MM-DD") => {
-    return dayjs(dateStr).date(format);
+    return dayjs(dateStr).format(format);
 })
 Vue.filter("dateTime", (dateStr, format = "YYYY-MM-DD HH:mm:ss") => {
-    return dayjs(dateStr).date(format);
+    return dayjs(dateStr).format(format);
 });
 Vue.filter("time", (dateStr, format = "HH:mm:ss") => {
-    return dayjs(dateStr).date(format);
+    return dayjs(dateStr).format(format);
 });
 
 new Vue({
