@@ -54,5 +54,12 @@ html{
 
 /*操作栏*/
 .operation-container {
-  display: flex;
+  margin-bottom: 10px;
+}
+
+/*dialog标题*/
+.dialog-title-container {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-left: 20px;
 }

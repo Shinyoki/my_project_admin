@@ -23,7 +23,6 @@
           <i :class="'iconfont ' + item"/>
         </el-tooltip>
       </el-col>
-
     </el-row>
   </div>
 </template>
@@ -60,9 +59,8 @@ export default {
     },
     // 点击事件
     select(icon) {
-      console.log("传递了")
       // 回调给父组件
-      this.$emit('select', icon)
+      this.$emit('selected', icon)
     },
   },
   computed: {},
@@ -72,11 +70,9 @@ export default {
 <style scoped>
 .icon-list {
   margin-top: 10px;
-
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-
 }
 
 .icon-list .el-button {
@@ -93,6 +89,5 @@ export default {
 
 .icon-item:hover {
   color: #409EFF;
-
 }
 </style>

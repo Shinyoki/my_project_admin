@@ -38,7 +38,7 @@
             size="mini"
             type="primary"
             icon="el-icon-plus"
-            @click="createTopMenu"
+            @click="handleAdd(null)"
         >新增
         </el-button>
       </div>
@@ -65,6 +65,27 @@
             show-overflow-tooltip
             min-width="170"
         />
+        <el-table-column
+            prop="menuType"
+            label="菜单类型"
+            min-width="100"
+        >
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.menuType === 0" size="mini" type="primary">目录</el-tag>
+            <el-tag v-else-if="scope.row.menuType === 1" size="mini">菜单</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+            prop="id"
+            label="菜单ID"
+            min-width="70"
+            show-overflow-tooltip
+        >
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.id === 0" type="success">根节点</el-tag>
+            <span v-else>{{ scope.row.id }}</span>
+          </template>
+        </el-table-column>
         <!--        菜单图标-->
         <el-table-column
             align="center"
@@ -98,8 +119,8 @@
             width="70"
         >
           <template slot-scope="scope">
-            <el-tag v-if="scope.row.isHidden === 0" type="success">显示</el-tag>
-            <el-tag v-else type="danger">隐藏</el-tag>
+            <el-tag v-if="scope.row.isHidden === 0" size="mini" type="success">显示</el-tag>
+            <el-tag v-else type="danger" size="mini">隐藏</el-tag>
           </template>
         </el-table-column>
         <!--        排序等级-->
@@ -159,12 +180,20 @@
             <el-button
                 type="text"
                 size="mini"
+                v-if="scope.row.menuType === 0"
+                @click="handleAdd(scope.row)"
+            >新增
+            </el-button>
+            <el-button
+                type="text"
+                size="mini"
                 @click="handleEdit(scope.row)"
             >编辑
             </el-button>
             <el-button
                 type="text"
                 size="mini"
+                style="color: red"
                 @click="handleDelete(scope.row)"
             >删除
             </el-button>
@@ -179,19 +208,27 @@
         title="添加菜单"
         :visible.sync="showAddOrEditDialog"
         width="70%"
-        :before-close="initDialogForm"
+        :before-close="handleClose"
         append-to-body
     >
+<!--      标题-->
+      <div
+          class="dialog-title-container"
+          slot="title"
+          ref="addOrEditDialog"
+          />
       <el-form
           ref="addOrEditForm"
           :model="dialogForm"
-          label-width="100px"
+          label-width="120px"
+          :rules="rules"
       >
         <el-row>
-<!--          父id：占据一整行-->
+          <!--          父id：占据一整行-->
           <el-col :span="24">
             <el-form-item label="上级菜单" prop="parentId">
               <TreeSelect
+                  :disabled="lock"
                   v-model="dialogForm.parentId"
                   :multiple="false"
                   :options="menuOptions"
@@ -199,7 +236,7 @@
               />
             </el-form-item>
           </el-col>
-<!--         菜单类型：占据一整行 -->
+          <!--         菜单类型：占据一整行 -->
           <el-col :span="12">
             <el-form-item label="菜单类型" prop="menuType">
               <el-radio-group v-model="dialogForm.menuType">
@@ -216,18 +253,18 @@
               </el-radio-group>
             </el-form-item>
           </el-col>
-<!--          菜单图标：占据一整行-->
+          <!--          菜单图标：占据一整行-->
           <el-col :span="24">
             <el-form-item :label="dialogForm.menuType === 0 ? '目录图标' : '菜单图标'" prop="icon">
               <el-popover
-                placement="bottom-start"
-                width="460"
-                trigger="click"
-                @show="$refs.iconSelector.reset()"
-                >
+                  placement="bottom-start"
+                  width="460"
+                  trigger="click"
+                  @show="$refs['iconSelect'].reset()"
+              >
                 <IconSelector
-                  ref="iconSelector"
-                  @select="select"
+                    ref="iconSelect"
+                    @selected="selected"
                 />
                 <el-button slot="reference">
                   <span v-if="!dialogForm.icon">选择图标</span>
@@ -237,51 +274,85 @@
               </el-popover>
             </el-form-item>
           </el-col>
-<!--          菜单名称：占据半行-->
+          <!--          菜单名称：占据半行-->
           <el-col :span="12">
-            <el-form-item :label="dialogForm.menuType === 0 ? '目录名称' : '菜单名称'" prop="name">
+            <el-form-item prop="name">
               <el-input :placeholder="dialogForm.menuType === 0 ? '请输入目录名称' : '请输入菜单名称'" v-model="dialogForm.name"/>
+              <span slot="label">
+                <el-tooltip content="菜单/目录的名字，如 '首页'" placement="top">
+                <i class="el-icon-question"></i>
+                </el-tooltip>
+                {{ dialogForm.menuType === 0 ? '目录名称' : '菜单名称' }}
+              </span>
             </el-form-item>
           </el-col>
-<!--          菜单排序等级：占据半行-->
+          <!--          菜单排序等级：占据半行-->
           <el-col :span="12">
-            <el-form-item label="显示优先级" prop="orderNum">
+            <el-form-item prop="orderNum">
               <el-input-number v-model="dialogForm.orderNum" :min="0" :max="10"/>
+              <span slot="label">
+                <el-tooltip content="显示优先级，越低越先于其他菜单显示" placement="top">
+                <i class="el-icon-question"></i>
+                </el-tooltip>
+                显示优先级
+              </span>
             </el-form-item>
           </el-col>
-<!--          路由地址-->
+          <!--          路由地址-->
           <el-col :span="12">
-            <el-form-item label="路由地址" prop="path">
+            <el-form-item prop="path">
               <el-input placeholder="请输入路由地址" v-model="dialogForm.path"/>
+              <span slot="label">
+                <el-tooltip content="菜单的请求地址，如 /menu，用户访问该地址就可以进入到相应的组件" placement="top">
+                <i class="el-icon-question"></i>
+                </el-tooltip>
+                路由地址
+              </span>
             </el-form-item>
           </el-col>
-<!--          组件地址-->
+          <!--          组件地址-->
           <el-col v-if="dialogForm.menuType === 1" :span="12">
             <el-form-item label="组件地址" prop="component">
               <el-input placeholder="请输入组件地址" v-model="dialogForm.component"/>
+              <span slot="label">
+                <el-tooltip content="组件地址，如'Menu.vue'视图的相对路径为'/system/'，那么此处的值就是'/system/Menu'" placement="top">
+                <i class="el-icon-question"></i>
+                </el-tooltip>
+                组件地址
+              </span>
             </el-form-item>
           </el-col>
-<!--          角色集合-->
-          <el-col :span="12">
-            <el-form-item label="角色集合" prop="roleIds">
+          <!--          角色集合-->
+          <el-col :span="24">
+            <el-form-item label="角色集合" prop="roles">
               <el-select
                   v-model="dialogForm.roles"
                   multiple
-                  collapse-tags
                   placeholder="请选择角色"
               >
                 <el-option
                     v-for="(item, index) of roles"
                     :key="index"
-                    :label="item"
-                    :value="item"
+                    :label="item.roleLabel"
+                    :value="item.id"
                 >
                 </el-option>
               </el-select>
+              <span slot="label">
+                <el-tooltip content="角色集合，指定谁可以访问该菜单，默认是'admin'" placement="top">
+                <i class="el-icon-question"></i>
+                </el-tooltip>
+                角色集合
+              </span>
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="saveOrUpdateForm">确定</el-button>
+        <el-button @click="showAddOrEditDialog = false">取消</el-button>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -312,8 +383,9 @@ export default {
       },
       loading: false,     // v-loading 加载状态
       isExpandAll: false, // 默认是否全部展开菜单
-      showAddOrEditDialog: true,  // 显示 添加/编辑 菜单的对话框
+      showAddOrEditDialog: false,  // 显示 添加/编辑 菜单的对话框
       dialogForm: {       // 添加/编辑 菜单的对话框表单
+        id: null,
         name: '',
         icon: '',
         path: '',
@@ -323,13 +395,32 @@ export default {
         parentId: 0,
         isHidden: 0,
         orderNum: 0,
-
       },
+      lock: false,
       roles: [],
+      rules: {            // 表单验证规则
+        name: [
+          {required: true, message: '请输入菜单名称', trigger: 'blur'},
+          {min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur'}
+        ],
+        path: [
+          {required: true, message: '请输入路由地址', trigger: 'blur'},
+        ],
+        component: [
+          {required: true, message: '请输入组件地址', trigger: 'blur'},
+        ],
+        roles: [
+          {required: true, message: '请输入角色', trigger: 'blur'},
+          {type: 'array', min: 1, message: '至少选择一个角色', trigger: 'blur'}
+        ],
+        orderNum: [
+          {required: true, message: '请输入显示优先级', trigger: 'blur'},
+        ],
+      },
       menuOptions: [
         {
           id: 0,
-          label: '主类目'
+          label: '主目录'
         }
       ],
       // define the default value
@@ -339,18 +430,107 @@ export default {
     }
   },
   methods: {
+    // 为menu查询角色标签
+    getRoleOfMenu(menuId) {
+      if (menuId) {
+        this.getRequest("/admin/menu/" + menuId + "/roles").then(res => {
+          if (res.data.flag) {
+            this.dialogForm.roles = []
+            res.data.data.forEach(item => {
+              this.dialogForm.roles.push(item.id)
+            })
+          }
+        })
+      }
+    },
+    // 新增
+    handleAdd(menu) {
+      this.lock = false
+      this.$refs.addOrEditDialog.innerHTML = "添加菜单"
+      this.initDialogForm();
+      if (menu) {
+        this.lock = true
+        // 给自己添加子菜单
+        this.dialogForm.parentId = menu.id
+      }
+
+      this.showAddOrEditDialog = true;
+    },
+    // 编辑
+    handleEdit(menu) {
+      this.lock = true
+      this.$refs.addOrEditDialog.innerHTML = "编辑菜单"
+      this.dialogForm.icon = menu.icon
+      this.dialogForm.name = menu.name
+      this.dialogForm.path = menu.path
+      this.dialogForm.component = menu.component
+      this.dialogForm.menuType = menu.menuType
+      this.dialogForm.parentId = menu.parentId
+      this.dialogForm.isHidden = menu.isHidden
+      this.dialogForm.orderNum = menu.orderNum
+      this.dialogForm.id = menu.id
+
+      this.getRoleOfMenu(menu.id)
+      this.showAddOrEditDialog = true;
+    },
+    // 关闭 添加/编辑 菜单的对话框
+    handleClose() {
+      this.showAddOrEditDialog = false
+      this.initDialogForm()
+    },
+    // 提交表单
+    saveOrUpdateForm() {
+
+      this.$refs.addOrEditForm.validate(valid => {
+        if (valid) {
+
+          // 配置默认参数
+          if (this.dialogForm.parentId === undefined || this.dialogForm.parentId < 0) {
+            // 改回主目录
+            this.dialogForm.parentId = 0;
+          }
+          if (this.dialogForm.menuType === 0) {
+            this.dialogForm.component = 'Layout';
+          }
+          if (!this.dialogForm.icon || this.dialogForm.icon.length <= 0) {
+            this.dialogForm.icon = 'icon-zhuye'
+          }
+
+          // valid
+          this.postRequest("/admin/menu", this.dialogForm).then(res => {
+            if (res.data.flag) {
+              this.$message.success("操作成功")
+
+              this.showAddOrEditDialog = false
+              // this.doSearch()
+              window.location.reload()
+            } else {
+              this.$message.error(res.data.message)
+            }
+          });
+        } else {
+          this.$notify.warning("请填写完整表单")
+        }
+      })
+    },
+    // 关闭 添加/编辑 菜单的对话框
+    cancelSaveOrUpdateForm() {
+      this.$notify.success("取消了")
+      this.showAddOrEditDialog = false
+      this.initDialogForm();
+    },
+    // 查询角色集合
     getRoleLabels() {
       this.getRequest("/admin/roles/labels").then(res => {
         if (res.data.flag) {
           this.roles = res.data.data
-          console.log("查询结果")
-          console.log(res.data.data)
         }
       })
     },
     // 选择icon的回调函数
-    select(icon) {
+    selected(icon) {
       this.dialogForm.icon = icon
+      this.$forceUpdate();
     },
     // 为treeSelect组件准备数据
     getTreeSelectOptions(menus) {
@@ -367,7 +547,7 @@ export default {
     },
     handleSelectionOptions(menus) {
       // 获取菜单成功
-      const menu = {id: 0, name: '主类目', children: []};
+      const menu = {id: 0, name: '主目录', children: []};
       // 构建树形菜单
       menu.children = this.handleTree(menus);
       this.menuOptions = [menu]
@@ -390,24 +570,15 @@ export default {
     initDialogForm() {
       this.dialogForm = {
         name: '',
-        icon: '',
+        value: '',
         path: '',
+        menuType: 0,
         component: '',
-        role: 'user',
         isHidden: 0,
         parentId: 0,
         orderNum: 0,
         roles: []
       }
-    },
-    // TODO 创建新表单
-    createTopMenu() {
-      this.$notify.success("创建")
-    },
-    // TODO 编辑
-    handleEdit(menu) {
-      console.log("编辑的menu")
-      console.log(menu)
     },
     // 删除
     handleDelete(menu) {

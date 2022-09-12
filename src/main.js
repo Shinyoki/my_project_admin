@@ -45,24 +45,34 @@ router.beforeEach((to, from, next) => {
         if (!item) {
             // 还没登录过
             sessionStorage.setItem("login", '1');
-            next('/login');
-        } else {
-            Notification.warning("重新登录一下吧~");
-            next('/login');
         }
-
+        next('/login');
     }
 
     next();
 });
 router.afterEach((to) => {
-    window.document.title = to.meta.title || myConfig.defaultTitle;
     NProgress.done();
+    window.document.title = to.meta.title || myConfig.defaultTitle;
 });
 
 /**
  * Axios 请求拦截器
  */
+import JSONbig from 'json-bigint'
+
+//可以通过axios的transformResponse方法，这个方法的作用是在传递给then/catch前，允许修改响应数据
+
+//axios在这里默认把响应体从json字符串转成了js对象
+Axios.defaults.transformResponse = [function (data) {
+    try {
+        return JSONbig.parse(data)
+    }catch (e) {
+        return data
+    }
+}]
+
+
 Axios.defaults.headers['Content-Type'] = "application/json;charset=utf-8"
 Axios.interceptors.request.use(
     // 原始发送
@@ -80,6 +90,7 @@ Axios.interceptors.request.use(
     },
     // 错误发送
     error => {
+        NProgress.done();
         console.debug("Axios.interceptors.request.use error: ", error);
         return Promise.reject(error);
     }
