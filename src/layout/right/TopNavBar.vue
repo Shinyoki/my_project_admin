@@ -93,7 +93,7 @@
           @click="refreshHistory"
           size="mini"
           plain
-          >关闭全部</el-button>
+          >全部关闭</el-button>
       </div>
     </div>
 

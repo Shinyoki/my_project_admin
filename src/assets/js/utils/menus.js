@@ -135,19 +135,23 @@ export function handleTree(data, id, parentId, children) {
         childrenList: children || 'children'
     };
 
-    var childrenListMap = {};
-    var nodeIds = {};
-    var tree = [];
+    var childrenListMap = {};   // 存放所有的子集合
+    var nodeIds = {};           // 存放所有的节点
+    var tree = [];              // 存放最终的树形结构
 
+    // 遍历所有节点，将所有子节点放入childrenListMap
     for (let d of data) {
         let parentId = d[config.parentId];
         if (childrenListMap[parentId] == null) {
+            // 如果没有父节点，那么就是根节点
             childrenListMap[parentId] = [];
         }
+        // 将当前节点放入父节点的子集合中
         nodeIds[d[config.id]] = d;
         childrenListMap[parentId].push(d);
     }
 
+    // 遍历所有节点，将所有子节点放入父节点的childrenList中
     for (let d of data) {
         let parentId = d[config.parentId];
         if (nodeIds[parentId] == null) {
@@ -155,10 +159,12 @@ export function handleTree(data, id, parentId, children) {
         }
     }
 
+    // 递归设置子节点
     for (let t of tree) {
         adaptToChildrenList(t);
     }
 
+    // 递归设置子节点
     function adaptToChildrenList(o) {
         if (childrenListMap[o[config.id]] !== null) {
             o[config.childrenList] = childrenListMap[o[config.id]];

@@ -174,15 +174,132 @@
 
     </el-card>
 
+    <!--    添加表单-->
+    <el-dialog
+        title="添加菜单"
+        :visible.sync="showAddOrEditDialog"
+        width="70%"
+        :before-close="initDialogForm"
+        append-to-body
+    >
+      <el-form
+          ref="addOrEditForm"
+          :model="dialogForm"
+          label-width="100px"
+      >
+        <el-row>
+<!--          父id：占据一整行-->
+          <el-col :span="24">
+            <el-form-item label="上级菜单" prop="parentId">
+              <TreeSelect
+                  v-model="dialogForm.parentId"
+                  :multiple="false"
+                  :options="menuOptions"
+                  :normalizer="myNormalizer"
+              />
+            </el-form-item>
+          </el-col>
+<!--         菜单类型：占据一整行 -->
+          <el-col :span="12">
+            <el-form-item label="菜单类型" prop="menuType">
+              <el-radio-group v-model="dialogForm.menuType">
+                <el-radio :label="0">目录</el-radio>
+                <el-radio :label="1">菜单</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="是否隐藏" prop="isHidden">
+              <el-radio-group v-model="dialogForm.isHidden">
+                <el-radio :label="0">显示</el-radio>
+                <el-radio :label="1">隐藏</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+<!--          菜单图标：占据一整行-->
+          <el-col :span="24">
+            <el-form-item :label="dialogForm.menuType === 0 ? '目录图标' : '菜单图标'" prop="icon">
+              <el-popover
+                placement="bottom-start"
+                width="460"
+                trigger="click"
+                @show="$refs.iconSelector.reset()"
+                >
+                <IconSelector
+                  ref="iconSelector"
+                  @select="select"
+                />
+                <el-button slot="reference">
+                  <span v-if="!dialogForm.icon">选择图标</span>
+                  <i v-if="dialogForm.icon" :class="`iconfont ` + dialogForm.icon"/>
+                  <span v-if="dialogForm.icon"> {{ dialogForm.icon }}</span>
+                </el-button>
+              </el-popover>
+            </el-form-item>
+          </el-col>
+<!--          菜单名称：占据半行-->
+          <el-col :span="12">
+            <el-form-item :label="dialogForm.menuType === 0 ? '目录名称' : '菜单名称'" prop="name">
+              <el-input :placeholder="dialogForm.menuType === 0 ? '请输入目录名称' : '请输入菜单名称'" v-model="dialogForm.name"/>
+            </el-form-item>
+          </el-col>
+<!--          菜单排序等级：占据半行-->
+          <el-col :span="12">
+            <el-form-item label="显示优先级" prop="orderNum">
+              <el-input-number v-model="dialogForm.orderNum" :min="0" :max="10"/>
+            </el-form-item>
+          </el-col>
+<!--          路由地址-->
+          <el-col :span="12">
+            <el-form-item label="路由地址" prop="path">
+              <el-input placeholder="请输入路由地址" v-model="dialogForm.path"/>
+            </el-form-item>
+          </el-col>
+<!--          组件地址-->
+          <el-col v-if="dialogForm.menuType === 1" :span="12">
+            <el-form-item label="组件地址" prop="component">
+              <el-input placeholder="请输入组件地址" v-model="dialogForm.component"/>
+            </el-form-item>
+          </el-col>
+<!--          角色集合-->
+          <el-col :span="12">
+            <el-form-item label="角色集合" prop="roleIds">
+              <el-select
+                  v-model="dialogForm.roles"
+                  multiple
+                  collapse-tags
+                  placeholder="请选择角色"
+              >
+                <el-option
+                    v-for="(item, index) of roles"
+                    :key="index"
+                    :label="item"
+                    :value="item"
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+// https://blog.csdn.net/qq_60035188/article/details/124936953
+import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+import TreeSelect from "@riophae/vue-treeselect"
+import IconSelector from "@/components/IconSelector";
 
 export default {
   name: 'MenuView',
+  components: {IconSelector, TreeSelect},
   created() {
-    this.doSearch();
+    this.doSearch().then(res => {
+      this.getTreeSelectOptions(res)
+      this.getRoleLabels()
+    })
   },
   mounted() {
   },
@@ -195,9 +312,94 @@ export default {
       },
       loading: false,     // v-loading 加载状态
       isExpandAll: false, // 默认是否全部展开菜单
+      showAddOrEditDialog: true,  // 显示 添加/编辑 菜单的对话框
+      dialogForm: {       // 添加/编辑 菜单的对话框表单
+        name: '',
+        icon: '',
+        path: '',
+        component: '',
+        roles: [],
+        menuType: 0,
+        parentId: 0,
+        isHidden: 0,
+        orderNum: 0,
+
+      },
+      roles: [],
+      menuOptions: [
+        {
+          id: 0,
+          label: '主类目'
+        }
+      ],
+      // define the default value
+      value: null,
+      // define options
+      options: [],
     }
   },
   methods: {
+    getRoleLabels() {
+      this.getRequest("/admin/roles/labels").then(res => {
+        if (res.data.flag) {
+          this.roles = res.data.data
+          console.log("查询结果")
+          console.log(res.data.data)
+        }
+      })
+    },
+    // 选择icon的回调函数
+    select(icon) {
+      this.dialogForm.icon = icon
+    },
+    // 为treeSelect组件准备数据
+    getTreeSelectOptions(menus) {
+      if (menus) {
+        this.handleSelectionOptions(menus);
+      } else {
+        const _this = this;
+        this.getRequest('/admin/menus').then(res => {
+          if (res.data.flag) {
+            _this.handleSelectionOptions(res.data.data);
+          }
+        });
+      }
+    },
+    handleSelectionOptions(menus) {
+      // 获取菜单成功
+      const menu = {id: 0, name: '主类目', children: []};
+      // 构建树形菜单
+      menu.children = this.handleTree(menus);
+      this.menuOptions = [menu]
+    },
+    // 我的数据格式化器
+    myNormalizer(node) {
+      if (node.children && !node.children.length) {
+        delete node.children;
+      }
+      if (node.menuType === 1) {
+        return null
+      }
+      return {
+        id: node.id,
+        label: node.name,
+        children: node.children
+      };
+    },
+    // 初始化Dialog表单
+    initDialogForm() {
+      this.dialogForm = {
+        name: '',
+        icon: '',
+        path: '',
+        component: '',
+        role: 'user',
+        isHidden: 0,
+        parentId: 0,
+        orderNum: 0,
+        roles: []
+      }
+    },
     // TODO 创建新表单
     createTopMenu() {
       this.$notify.success("创建")
@@ -223,7 +425,7 @@ export default {
             this.$notify.success('删除成功！');
             this.doSearch();
             //  浏览器刷新
-            window.loading.reload()
+            // window.loading.reload()
           } else {
             this.$notify.error(res.data.message);
           }
@@ -234,19 +436,22 @@ export default {
     },
     // 搜索
     doSearch() {
-      this.loading = true
-      let params = {
-        keywords: this.searchForm.name,
-        isHidden: this.searchForm.isHidden === 3 ? null : this.searchForm.isHidden
-      }
-
-      this.getRequest('/admin/menus', params).then(res => {
-        if (res.data.flag) {
-          this.menuList = this.handleTree(res.data.data);
-        } else {
-          this.$notify.error("请求菜单列表失败!")
+      return new Promise(resolve => {
+        this.loading = true
+        let params = {
+          keywords: this.searchForm.name,
+          isHidden: this.searchForm.isHidden === 3 ? null : this.searchForm.isHidden
         }
-        this.loading = false
+
+        this.getRequest('/admin/menus', params).then(res => {
+          if (res.data.flag) {
+            this.menuList = this.handleTree(res.data.data);
+          } else {
+            this.$notify.error("请求菜单列表失败!")
+          }
+          this.loading = false
+          resolve(res.data.data)
+        })
       })
     },
     // 重置搜索
@@ -258,8 +463,7 @@ export default {
       this.doSearch()
     },
   },
-  computed: {
-  },
+  computed: {},
 }
 </script>
 
