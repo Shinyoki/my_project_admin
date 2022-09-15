@@ -27,7 +27,6 @@ import {getToken} from "@/assets/js/utils/token-util";
 import "./assets/css/iconfont/iconfont.css"
 // 折叠菜单
 import Fragment from 'vue-fragment'
-import {Notification} from "element-ui";
 // 构建树形结构
 import {handleTree} from "@/assets/js/utils/menus";
 
@@ -106,7 +105,6 @@ function handleError(status, message) {
     if (status == 401) {
         // 未登录
         store.dispatch("doLogout").then(() => {
-            Notification.warning("登录已过期，请重新登录~");
             router.push({path: '/login'});
         });
     } else if (status == 404) {

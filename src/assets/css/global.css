@@ -22,6 +22,12 @@ html{
 .ml-auto {
   margin-left: auto;
 }
+.mr-2 {
+  margin-right: 4px;
+}
+.mr-3 {
+  margin-right: 8px;
+}
 
 /**
 滚动条样式

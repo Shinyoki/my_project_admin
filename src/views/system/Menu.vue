@@ -155,6 +155,7 @@
             min-width="100"
         >
           <template slot-scope="scope">
+            <i class="el-icon-time mr-2" />
             <span>{{ scope.row.createTime | date }}</span>
           </template>
         </el-table-column>
@@ -166,6 +167,7 @@
             min-width="100"
         >
           <template slot-scope="scope">
+            <i class="el-icon-time mr-2"/>
             <span>{{ scope.row.updateTime | date }}</span>
           </template>
         </el-table-column>
@@ -498,12 +500,31 @@ export default {
 
           // valid
           this.postRequest("/admin/menu", this.dialogForm).then(res => {
+            let h = this.$createElement;
             if (res.data.flag) {
-              this.$message.success("操作成功")
+              this.$notify({
+                title: '操作成功',
+                message:
+                    h('div', null, [
+                      h('div', null, '检测到您更新了表单，是否选择刷新页面以更新侧边栏？'),
+                      h('span',
+                          {
+                            class: {
+                              'my-button': true
+                            },
+                            on: {
+                              click: () => {
+                                window.location.reload();
+                              }
+                            }
+                          },
+                          '刷新')
+                    ]),
+                position: 'bottom-right',
+              })
 
+              this.doSearch();
               this.showAddOrEditDialog = false
-              // this.doSearch()
-              window.location.reload()
             } else {
               this.$message.error(res.data.message)
             }
@@ -639,5 +660,18 @@ export default {
 </script>
 
 <style scoped>
+.my-button {
 
+  color: #fff;
+  background-color: #409EFF;
+  border-radius: 4px;
+  transition: all .5s;
+  cursor: pointer;
+  padding: 10px 20px;
+  float: right;
+}
+
+.my-button:hover {
+  background-color: #66B1FF;
+}
 </style>
