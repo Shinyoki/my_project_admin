@@ -12,7 +12,7 @@
         <!--        角色名称-->
         <el-form-item label="角色名称" prop="name">
           <el-input
-              v-model="searchForm.name"
+              v-model="searchForm.roleName"
               placeholder="请输入角色名称"
               clearable
               @keyup.enter.native="doSearch"
@@ -21,7 +21,7 @@
         <!--        角色标签-->
         <el-form-item label="角色标签" prop="label">
           <el-input
-              v-model="searchForm.label"
+              v-model="searchForm.roleLabel"
               placeholder="请输入角色标签"
               clearable
               @keyup.enter.native="doSearch"
@@ -51,6 +51,13 @@
             @click="handleAdd(null)"
         >添加
         </el-button>
+        <el-button
+          type="success"
+          icon="el-icon-edit"
+          size="mini"
+          :disabled="selectedRoleIds.length !== 1"
+          @click="handleEditOne"
+          >编辑</el-button>
         <!--        批量删除-->
         <el-button
             type="danger"
@@ -98,57 +105,173 @@
         <!--        禁用状态-->
         <el-table-column label="角色状态" prop="isDisabled" align="center">
           <template slot-scope="scope">
-            <el-switch
-                v-model="scope.row.isDisabled"
-                :active-value="0"
-                :inactive-value="1"
-                @change="handleDisableUpdate(scope.row)"
-            />
+            <el-tooltip
+                placement="top"
+                :content="scope.row.isDisabled === 1 ? '禁用' : '正常'"
+            >
+              <el-switch
+                  v-model="scope.row.isDisabled"
+                  :active-value="1"
+                  :inactive-value="0"
+                  inactive-color="#67C23A"
+                  active-color="#F56C6C"
+                  @change="handleDisableUpdate(scope.row)"
+              />
+            </el-tooltip>
           </template>
         </el-table-column>
-<!--        创建时间-->
+        <!--        创建时间-->
         <el-table-column label="创建时间" prop="createTime" align="center">
           <template slot-scope="scope">
-            <i class="el-icon-time mr-2" />
+            <i class="el-icon-time mr-2"/>
             <span>{{ scope.row.createTime | date }}</span>
           </template>
         </el-table-column>
-<!--        操作-->
+        <!--        操作-->
         <el-table-column label="操作" align="center" fixed="right">
           <template slot-scope="scope">
             <el-button
-              type="text"
-              size="mini"
-              @click="handleEditMenu(scope.row)"
-              icon="el-icon-edit"
-              >编辑菜单</el-button>
+                type="text"
+                size="mini"
+                v-if="scope.row.id != -1"
+                @click="handleEditMenu(scope.row)"
+                icon="el-icon-edit"
+            >编辑菜单
+            </el-button>
             <el-button
-              type="text"
-              size="mini"
-              @click="handleEditResource(scope.row)"
-              icon="el-icon-s-operation"
-              >编辑资源</el-button>
+                type="text"
+                size="mini"
+                v-if="scope.row.id != -1"
+                @click="handleEditResource(scope.row)"
+                icon="el-icon-s-operation"
+            >编辑资源
+            </el-button>
             <el-button
-              type="text"
-              style="color: red"
-              icon="el-icon-delete"
-              @click="handleDeleteRole(scope.row.id)"
-              >删除</el-button>
+                type="text"
+                style="color: red"
+                v-if="scope.row.id != -1"
+                icon="el-icon-delete"
+                @click="handleDeleteRole(scope.row.id)"
+            >删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
+<!--      分页栏-->
       <el-pagination
-        hide-on-single-page
-        class="pagination-container"
-        @size-change="onSizeChange"
-        @current-change="onCurChange"
-        :current-page="current"
-        :page-size="size"
-        :total="total"
-        :page-sizes="[10, 20]"
-        layout="total, sizes, prev, pager, next, jumper"
-        />
+          hide-on-single-page
+          class="pagination-container"
+          @size-change="onSizeChange"
+          @current-change="onCurChange"
+          :current-page="current"
+          :page-size="size"
+          :total="total"
+          :page-sizes="[10, 20]"
+          layout="total, sizes, prev, pager, next, jumper"
+      />
     </el-card>
+
+    <!--    新增或编辑对话框-->
+    <el-dialog
+        :visible.sync="showAddOrEditDialog"
+        width="50%"
+        :before-close="handleClose"
+    >
+      <div
+          slot="title"
+          class="dialog-title-container"
+          ref="dialogTitle"/>
+      <!--      表单-->
+      <el-form
+          ref="addOrEditForm"
+          :model="dialogForm"
+          label-width="100px"
+          :rules="dialogRules"
+      >
+        <el-row>
+          <!--          角色名-->
+          <el-col :span="24">
+            <el-form-item label="角色名" prop="roleName">
+              <span slot="label">
+                <el-tooltip content="角色名，如 管理员" placement="top">
+                  <i class="el-icon-question"/>
+                </el-tooltip>
+                角色名
+              </span>
+              <el-input
+                  v-model="dialogForm.roleName"
+                  placeholder="请输入角色名"
+                  :disabled="formLock"
+              />
+            </el-form-item>
+          </el-col>
+          <!--          角色标签-->
+          <el-col :span="24">
+            <el-form-item label="角色标签" prop="roleLabel">
+              <span slot="label">
+                <el-tooltip content="角色标签，如 admin" placement="top">
+                  <i class="el-icon-question"/>
+                </el-tooltip>
+                角色标签
+              </span>
+              <el-input
+                  v-model="dialogForm.roleLabel"
+                  placeholder="请输入角色标签"
+                  :disabled="formLock"
+              />
+            </el-form-item>
+          </el-col>
+          <!--          角色状态-->
+          <el-col :span="24">
+            <el-form-item label="角色状态" prop="isDisabled">
+              <el-tooltip :content="dialogForm.isDisabled === 1 ? '禁用' : '正常'" placement="top">
+                <el-switch
+                    v-model="dialogForm.isDisabled"
+                    :active-value="1"
+                    :inactive-value="0"
+                    inactive-color="#67C23A"
+                    active-color="#F56C6C"
+                />
+              </el-tooltip>
+            </el-form-item>
+          </el-col>
+<!--          角色菜单-->
+          <el-col v-if="dialogForm.menus.length > 0" :span="24">
+            <el-form-item label="可访菜单">
+              <el-card>
+                <el-tree
+                    :data="dialogForm.menus"
+                    show-checkbox
+                    ref="menuTree"
+                    node-key="id"
+                    :default-checked-keys="selectedMenuIds"
+                    :props="defaultProps">
+                </el-tree>
+              </el-card>
+            </el-form-item>
+          </el-col>
+<!--          角色资源-->
+          <el-col v-if="dialogForm.resources.length > 0" :span="24">
+            <el-form-item label="可操作资源">
+              <el-card>
+                <el-tree
+                    :data="dialogForm.resources"
+                    show-checkbox
+                    ref="resourceTree"
+                    node-key="id"
+                    :default-checked-keys="selectedResourceIds"
+                    :props="defaultProps">
+                </el-tree>
+              </el-card>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="handleClose">取 消</el-button>
+        <el-button type="primary" @click="saveOrUpdateForm">确 定</el-button>
+      </span>
+    </el-dialog>
 
   </div>
 </template>
@@ -167,20 +290,43 @@ export default {
       current: 0,           // 分页请求
       size: 10,
       total: 0,
-      searchForm: {
-        // 搜索条件
-        name: '',           // 角色名
-        label: '',          // 角色标签 如 admin
-        isDisabled: null,   // 角色状态
+      formLock: false,
+      dialogForm: {
+        id: null,
+        roleName: '',
+        roleLabel: '',
+        isDisabled: 0,
+        menus: [],
+        resources: [],
       },
       selectedRoleIds: [],  // 选中的roles
-      roleList: [],         // 数据
-      statusOptions: {
-        // 角色状态
-        0: '启用',
-        1: '禁用',
+      selectedMenuIds: [],
+      selectedResourceIds: [],
+      rules: {},
+      searchForm: {
+        // 搜索条件
+        roleName: '',           // 角色名
+        roleLabel: '',          // 角色标签 如 admin
+        isDisabled: null,   // 角色状态
       },
+      dialogRules: {
+        roleName: [
+          {required: true, message: '请输入角色名', trigger: 'blur'},
+          {min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur'},
+          {pattern: /^\S+$/, message: '不能包含空格', trigger: 'blur'},
+        ],
+        roleLabel: [
+          {required: true, message: '请输入角色标签', trigger: 'blur'},
+          {min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur'},
+          {pattern: /^\S+$/, message: '不能包含空格', trigger: 'blur'},
+        ],
+      },
+      roleList: [],         // 数据
       showAddOrEditDialog: false, // 新增或编辑弹窗
+      defaultProps: {
+        children: 'children',
+        label: 'label'
+      }
     }
   },
   methods: {
@@ -217,9 +363,16 @@ export default {
     },
     // 多选事件
     handleSelectChange(newVals) {
-      this.selectedRoleIds = newVals.map(role => role.id)
+      this.selectedRoleIds = newVals.map(role => {
+        return {
+          id: role.id,
+          roleName: role.roleName,
+          roleLabel: role.roleLabel,
+          isDisabled: role.isDisabled,
+        }
+      })
     },
-    // TODO 删除角色
+    // 删除角色
     handleDeleteRole(id) {
       this.$confirm("确定要删除该角色吗？", "提示", {
         confirmButtonText: "确定",
@@ -238,9 +391,93 @@ export default {
       }).catch(() => {
       });
     },
+    initDialogForm() {
+      this.dialogForm = {
+        id: null,
+        roleName: '',
+        roleLabel: '',
+        isDisabled: 0,
+        menus: [],
+        resources: [],
+      }
+      this.selectedMenuIds = [];
+      this.selectedResourceIds = [];
+    },
+    // 新增或更新
+    saveOrUpdateForm() {
+      // TODO 提交表单
+      console.log("提交表单");
+      console.log(this.dialogForm)
+      this.postRequest("/admin/role", this.dialogForm).then(res => {
+        if (res.data.flag) {
+          this.$notify.success("操作成功");
+          this.showAddOrEditDialog = false;
+          this.doSearch();
+        } else {
+          this.$notify.error(res.data.message);
+        }
+      });
+    },
+    // 凸(艹皿艹 )，你妈的，axios为什么会解析Long时出现精度丢失啊，只能用字符串了
+    // 关键是我还没找到其他法解决，真的不想每次都手动加个字符串解析啊
+    parseStringList2IntList(stringIdList) {
+      let longIdList = [];
+      stringIdList.forEach(id => {
+        longIdList.push(parseInt(id));
+      });
+      return longIdList;
+    },
+    // 编辑单个
+    handleEditOne() {
+      if (this.selectedRoleIds[0].id == -1) {
+        this.$notify.error("不能编辑超级管理员");
+        return false;
+      }
+      this.$refs.dialogTitle.innerHTML = "编辑角色";
+      this.initDialogForm();
+      const params = this.selectedRoleIds[0]
+      this.dialogForm.id = params.id;
+      this.dialogForm.roleName = params.roleName;
+      this.dialogForm.roleLabel = params.roleLabel;
+      this.dialogForm.isDisabled = params.isDisabled;
+      this.showAddOrEditDialog = true;
+    },
     // TODO 编辑资源
-    handleEditResource(row) {
-      console.log(row)
+    handleEditResource(role) {
+      this.initDialogForm();
+      this.$refs.dialogTitle.innerHTML = "编辑可访资源";
+      this.getRequest("/admin/role/resources/" + role.id).then(res => {
+        if (res.data.flag) {
+          this.selectedResourceIds = this.parseStringList2IntList(res.data.data.checkedIds);
+          this.dialogForm.resources = res.data.data.resourceTree;
+        } else {
+          this.$notify.error(res.data.message);
+        }
+      });
+      this.basicHandle(role);
+    },
+    // 编辑
+    handleEditMenu(role) {
+      this.initDialogForm()
+      // 设置Menu
+      this.getRequest("/admin/role/menus/" + role.id).then(res => {
+        if (res.data.flag) {
+          this.selectedMenuIds = this.parseStringList2IntList(res.data.data.checkedIds);
+          this.dialogForm.menus = res.data.data.menuTree
+        } else {
+          this.$notify.error(res.data.message);
+        }
+      })
+      this.basicHandle(role);
+      this.$refs.dialogTitle.innerHTML = '编辑角色可访菜单'
+    },
+    basicHandle(role) {
+      this.dialogForm.id = role.id
+      this.dialogForm.roleName = role.roleName
+      this.dialogForm.roleLabel = role.roleLabel
+      this.dialogForm.isDisabled = role.isDisabled
+      this.showAddOrEditDialog = true
+      this.formLock = true;
     },
     // 批量删除
     handleDeleteAll() {
@@ -253,7 +490,10 @@ export default {
         cancelButtonText: '取消',
         type: 'warning',
       }).then(() => {
-        this.deleteRequest("/admin/roles", this.selectedRoleIds).then(res => {
+        let roleIds = this.selectedRoleIds.map(role => {
+          return role.id;
+        })
+        this.deleteRequest("/admin/roles", roleIds).then(res => {
           if (res.data.flag) {
             this.$notify.success("删除成功");
             this.doSearch();
@@ -266,24 +506,31 @@ export default {
       });
 
     },
-    // TODO 添加
-    handleAdd(role) {
-      console.log(role)
+    // 添加
+    handleAdd() {
+      this.formLock = false
+      this.showAddOrEditDialog = true;
+      this.$refs.dialogTitle.innerHTML = "新增角色";
+      // 初始化数据
+      this.initDialogForm()
+
     },
-    // TODO 编辑
-    handleEditMenu(role) {
-      console.log(role)
+    handleClose() {
+      this.formLock = false
+      this.showAddOrEditDialog = false;
     },
-    // 重置
+    // 重置搜索
     refreshSearch() {
+      this.formLock = false;
       this.current = 0;
-      this.searchForm.name = '';
-      this.searchForm.label = '';
+      this.searchForm.roleName = '';
+      this.searchForm.roleLabel = '';
       this.searchForm.isDisabled = null;
       this.doSearch();
     },
     // 搜索结果
     doSearch() {
+      this.formLock = false;
       this.loading = true;
       let params = {
         current: this.current,
@@ -299,7 +546,9 @@ export default {
         }
 
         this.loading = false;
-      });
+      }).catch(() => {
+        this.loading = false;
+      })
     },
   },
   computed: {},

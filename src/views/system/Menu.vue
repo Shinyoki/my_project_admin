@@ -623,6 +623,7 @@ export default {
           }
         });
       }).catch(() => {
+        this.loading = false;
         this.$notify.info('取消删除"' + menu.name + '"');
       });
     },
@@ -644,6 +645,8 @@ export default {
           this.loading = false
           resolve(res.data.data)
         })
+      }).catch(() => {
+        this.loading = false;
       })
     },
     // 重置搜索

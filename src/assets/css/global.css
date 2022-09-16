@@ -69,3 +69,8 @@ html{
   font-weight: bold;
   margin-left: 20px;
 }
+/*分页栏*/
+.pagination-container {
+    text-align: right;
+    margin-top: 10px;
+}

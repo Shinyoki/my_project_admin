@@ -103,7 +103,9 @@ export default {
               this.$message.error(res.data.message);
             }
 
-          });
+          }).catch(() => {
+            this.loading = false;
+          })
         } else {
           this.$notify({
             type: 'error',
