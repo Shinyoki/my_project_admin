@@ -323,6 +323,14 @@ export default {
       },
       roleList: [],         // 数据
       showAddOrEditDialog: false, // 新增或编辑弹窗
+      /**
+       * Dialog状态：
+       * 1：新增角色
+       * 2：编辑角色
+       * 3: 编辑角色可访菜单
+       * 4: 编辑角色可操作资源
+       */
+      dialogStatus: 1,
       defaultProps: {
         children: 'children',
         label: 'label'
@@ -406,20 +414,48 @@ export default {
     // 新增或更新
     saveOrUpdateForm() {
       // TODO 提交表单
+      let params = {
+        id: this.dialogForm.id,
+        roleName: this.dialogForm.roleName,
+        roleLabel: this.dialogForm.roleLabel,
+        isDisabled: this.dialogForm.isDisabled,
+        operateMode: this.dialogStatus
+      }
+      console.log("状态：" + this.dialogStatus)
+      switch (this.dialogStatus) {
+        case 3:
+          // eslint-disable-next-line no-case-declarations
+          params.checkedMenuIds = this.$refs.menuTree.getCheckedNodes(false, true).map(node => {
+            return node.id;
+          });
+          break;
+        case 4:
+          params.checkedResourceIds = this.$refs.resourceTree.getCheckedNodes(false, true).map(node => {
+            return node.id;
+          });
+          break;
+      }
       console.log("提交表单");
-      console.log(this.dialogForm)
-      this.postRequest("/admin/role", this.dialogForm).then(res => {
-        if (res.data.flag) {
-          this.$notify.success("操作成功");
-          this.showAddOrEditDialog = false;
-          this.doSearch();
+      console.log(params)
+      this.$refs.addOrEditForm.validate((valid) => {
+        if (valid) {
+          this.postRequest("/admin/role", params).then(res => {
+            if (res.data.flag) {
+              this.$notify.success("操作成功");
+              this.showAddOrEditDialog = false;
+              this.doSearch();
+            } else {
+              this.$notify.error(res.data.message);
+            }
+          });
         } else {
-          this.$notify.error(res.data.message);
+          this.$notify.error("请检差表单是否填写完整");
+          return false;
         }
       });
     },
     // 凸(艹皿艹 )，你妈的，axios为什么会解析Long时出现精度丢失啊，只能用字符串了
-    // 关键是我还没找到其他法解决，真的不想每次都手动加个字符串解析啊
+    // 关键是我还没找到其他法解决，真的不想每次都手动加个字符串解析啊 ['1','2']
     parseStringList2IntList(stringIdList) {
       let longIdList = [];
       stringIdList.forEach(id => {
@@ -429,7 +465,8 @@ export default {
     },
     // 编辑单个
     handleEditOne() {
-      if (this.selectedRoleIds[0].id == -1) {
+      this.dialogStatus = 2;
+      if (this.selectedRoleIds.findIndex(role => role.id == -1) !== -1) {
         this.$notify.error("不能编辑超级管理员");
         return false;
       }
@@ -442,8 +479,9 @@ export default {
       this.dialogForm.isDisabled = params.isDisabled;
       this.showAddOrEditDialog = true;
     },
-    // TODO 编辑资源
+    // 编辑资源
     handleEditResource(role) {
+      this.dialogStatus = 4;
       this.initDialogForm();
       this.$refs.dialogTitle.innerHTML = "编辑可访资源";
       this.getRequest("/admin/role/resources/" + role.id).then(res => {
@@ -458,6 +496,7 @@ export default {
     },
     // 编辑
     handleEditMenu(role) {
+      this.dialogStatus = 3;
       this.initDialogForm()
       // 设置Menu
       this.getRequest("/admin/role/menus/" + role.id).then(res => {
@@ -485,6 +524,10 @@ export default {
         this.$notify.error("请至少选择一个再删除吧");
         return false;
       }
+      if (this.selectedRoleIds.findIndex(role => role.id == -1) !== -1) {
+        this.$notify.error("不能删除超级管理员");
+        return false;
+      }
       this.$confirm('此操作将永久删除选中的角色, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -508,6 +551,7 @@ export default {
     },
     // 添加
     handleAdd() {
+      this.dialogStatus = 1
       this.formLock = false
       this.showAddOrEditDialog = true;
       this.$refs.dialogTitle.innerHTML = "新增角色";
