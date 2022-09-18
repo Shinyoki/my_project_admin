@@ -42,27 +42,26 @@ function buildRoutes(menus) {
     let newRoutes = [];
     // 遍历菜单，添加路由
     menus.forEach(menu => {
-        if (menu.isHidden === 0) {
-            // 设置顶层菜单
-            let route = {
-                path: menu.path,
-                name: menu.name,
-                component: Layout,
-                children: [],
-                meta: {
-                    title: menu.name,
-                }
-            };
-            addChildForTopMenu(menu, route);
-            if (menu.children && menu.children.length > 0) {
-                let child = findChildrenRoutes(menu.children);
-                route.children.push(...child);
-            }
-            // 添加路由
-            router.addRoute(route);
-            newRoutes.push(route);
 
+        // 设置顶层菜单
+        let route = {
+            path: menu.path,
+            name: menu.name,
+            component: Layout,
+            children: [],
+            meta: {
+                title: menu.name,
+            }
+        };
+        addChildForTopMenu(menu, route);
+        if (menu.children && menu.children.length > 0) {
+            let child = findChildrenRoutes(menu.children);
+            route.children.push(...child);
         }
+        // 添加路由
+        router.addRoute(route);
+        newRoutes.push(route);
+
     })
 
     return newRoutes;
@@ -72,23 +71,23 @@ function buildRoutes(menus) {
 function findChildrenRoutes(routes) {
     let res = [];
     routes.forEach(item => {
-        if (item.isHidden === 0) {
-            if (isMenu(item)) {
-                let route = {
-                    name: item.name,
-                    path: item.path,
-                    component: loadView(item),
-                    meta: {
-                        title: item.name
-                    }
-                };
-                res.push(route);
-            } else {
-                if (item.children != null && item.children.length > 0) {
-                    res.push(...findChildrenRoutes(item.children));
+
+        if (isMenu(item)) {
+            let route = {
+                name: item.name,
+                path: item.path,
+                component: loadView(item),
+                meta: {
+                    title: item.name
                 }
+            };
+            res.push(route);
+        } else {
+            if (item.children != null && item.children.length > 0) {
+                res.push(...findChildrenRoutes(item.children));
             }
         }
+
     })
     return res;
 }
@@ -175,5 +174,6 @@ export function handleTree(data, id, parentId, children) {
             }
         }
     }
+
     return tree;
 }

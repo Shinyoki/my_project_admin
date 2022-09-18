@@ -62,6 +62,14 @@ html{
 .operation-container {
   margin-bottom: 10px;
 }
+/*搜索*/
+.operation-search-form {
+
+}
+/*新增 删除 编辑*/
+.operation-adu-container {
+ display: flex;
+}
 
 /*dialog标题*/
 .dialog-title-container {

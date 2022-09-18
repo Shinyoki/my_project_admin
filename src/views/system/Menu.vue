@@ -4,8 +4,10 @@
     <div class="operation-container">
       <!--      表单-->
       <el-form
+          v-show="showSearch"
           ref="searchForm"
           :model="searchForm"
+          class="operation-search-form"
           size="small"
           inline
       >
@@ -33,7 +35,7 @@
         </el-form-item>
       </el-form>
 
-      <div class="ml-auto">
+      <div class="operation-adu-container">
         <el-button
             size="mini"
             type="primary"
@@ -41,6 +43,10 @@
             @click="handleAdd(null)"
         >新增
         </el-button>
+        <RightToolbar
+          :show-search.sync="showSearch"
+          @queryTable="doSearch"
+          />
       </div>
     </div>
 
@@ -364,10 +370,10 @@
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import TreeSelect from "@riophae/vue-treeselect"
 import IconSelector from "@/components/IconSelector";
-
+import RightToolbar from "@/components/RightToolbar";
 export default {
   name: 'MenuView',
-  components: {IconSelector, TreeSelect},
+  components: {IconSelector, TreeSelect, RightToolbar},
   created() {
     this.doSearch().then(res => {
       this.getTreeSelectOptions(res)
@@ -378,6 +384,7 @@ export default {
   },
   data() {
     return {
+      showSearch: true,
       menuList: [],     // 需要被渲染的菜单列表
       searchForm: {     // 搜索表单
         name: '',

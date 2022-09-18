@@ -6,6 +6,8 @@
       <el-form
           ref="searchForm"
           :model="searchForm"
+          class="operation-search-form"
+          v-show="showSearch"
           :inline="true"
           size="small"
       >
@@ -42,7 +44,7 @@
         </el-form-item>
       </el-form>
       <!--      新增， 删除，刷新-->
-      <div>
+      <div class="operation-adu-container">
         <!--        新增-->
         <el-button
             type="primary"
@@ -66,6 +68,11 @@
             @click="handleDeleteAll"
         >批量删除
         </el-button>
+
+        <RightToolbar
+          :show-search.sync="showSearch"
+          @queryTable="doSearch"
+          />
       </div>
     </div>
 
@@ -90,7 +97,7 @@
             align="center"
         />
         <!--        角色名-->
-        <el-table-column label="角色名" prop="roleName" align="center"/>
+        <el-table-column label="角色名" prop="roleName" align="center" fixed/>
         <!--        角色标签-->
         <el-table-column label="角色标签" prop="roleLabel" align="center">
           <template slot-scope="scope">
@@ -145,6 +152,13 @@
                 @click="handleEditResource(scope.row)"
                 icon="el-icon-s-operation"
             >编辑资源
+            </el-button>
+            <el-button
+              type="text"
+              size="mini"
+              @click="handleAssignment(scope.row.id)"
+              icon="el-icon-s-custom"
+              >角色授权
             </el-button>
             <el-button
                 type="text"
@@ -277,15 +291,20 @@
 </template>
 
 <script>
+import RightToolbar from "@/components/RightToolbar";
 export default {
   name: 'RoleView',
   created() {
     this.doSearch();
   },
+  components: {
+    RightToolbar
+  },
   mounted() {
   },
   data() {
     return {
+      showSearch: true,
       loading: true,
       current: 0,           // 分页请求
       size: 10,
@@ -338,6 +357,10 @@ export default {
     }
   },
   methods: {
+    // 角色授权
+    handleAssignment(roleId) {
+      this.$router.push({path: '/role/' + roleId + '/users'})
+    },
     // page
     onSizeChange(newSize) {
       this.size = newSize
