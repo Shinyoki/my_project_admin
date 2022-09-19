@@ -51,17 +51,20 @@
 
       <div class="operation-adu-container">
         <el-button
-          type="primary"
-          icon="el-icon-plus"
-          size="mini"
-          @click="handleAdd"
-          >添加</el-button>
+            type="primary"
+            icon="el-icon-plus"
+            size="mini"
+            @click="handleAdd"
+        >添加
+        </el-button>
         <el-button
-          type="danger"
-          icon="el-icon-circle-close"
-          size="mini"
-          @click="handleDeleteSelected"
-          >批量删除</el-button>
+            type="danger"
+            icon="el-icon-circle-close"
+            size="mini"
+            :disabled="selectedUserIdList.length === 0"
+            @click="handleDeleteSelected"
+        >批量取消授权
+        </el-button>
         <RightToolbar
             @queryTable="doSearch"
             :show-search.sync="showSearch"/>
@@ -70,50 +73,80 @@
 
     <el-card>
       <el-empty v-loading="loading" v-if="userList == null || userList.length === 0" description="暂无数据"/>
-<!--      数据渲染-->
+      <!--      数据渲染-->
       <el-table
-        ref="userTable"
-        :data="userList"
-        @selection-change="handleSelectionChange"
-        >
-<!--        多选-->
+          v-else
+          ref="userTable"
+          :data="userList"
+          @selection-change="handleSelectionChange"
+      >
+        <!--        多选-->
         <el-table-column type="selection" align="center" width="50"/>
-<!--        用户名-->
+<!--        用户头像-->
+        <el-table-column align="center" label="头像" width="50">
+          <template slot-scope="scope">
+            <el-avatar
+                :src="scope.row.avatar"
+                size="small"
+                />
+          </template>
+        </el-table-column>
+        <!--        用户名-->
         <el-table-column prop="username" label="用户名" align="center" show-overflow-tooltip/>
-<!--        用户昵称-->
+        <!--        用户昵称-->
         <el-table-column prop="nickname" label="用户昵称" align="center" show-overflow-tooltip/>
-<!--        用户邮箱-->
+        <!--        用户邮箱-->
         <el-table-column prop="email" label="用户邮箱" align="center" width="200" show-overflow-tooltip/>
-<!--        用户状态-->
+        <!--        用户状态-->
         <el-table-column prop="isDisabled" label="用户状态" align="center" show-overflow-tooltip>
           <template slot-scope="scope">
             <el-tag v-if="scope.row.isDisabled == 0" type="success">正常</el-tag>
             <el-tag v-else type="danger">禁用</el-tag>
           </template>
         </el-table-column>
-<!--        操作-->
+        <!--        操作-->
         <el-table-column fixed="right" width="100" label="操作" align="center">
           <template slot-scope="scope">
             <el-button
-              type="text"
-              size="mini"
-              @click="handleUnAssign(scope.row.id)"
-              v-show="scope.row.id == -1"
-              icon="el-icon-delete"
-              >取消授权</el-button>
+                type="text"
+                size="mini"
+                @click="handleUnAssign(scope.row.id)"
+                v-show="scope.row.id != -1"
+                icon="el-icon-delete"
+            >取消授权
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
+      <el-pagination
+          v-if="userList && userList.length > 0"
+          background
+          class="pagination-container"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          :page-size="size"
+          :current-page.sync="current"
+          @current-change="handleCurrentChange"
+          @size-change="handleSizeChange"
+      />
     </el-card>
+
+<!--    新增授权用户dialog-->
+    <AssignUserDialog
+        ref="assignUserDialog"
+        @refreshSearch="refreshSearch"
+        :roleId="roleId"
+    />
   </div>
 </template>
 
 <script>
 import RightToolbar from "@/components/RightToolbar";
+import AssignUserDialog from "@/components/AssignUserDialog";
 
 export default {
   name: 'UserAssignment',
-  components: {RightToolbar},
+  components: {AssignUserDialog, RightToolbar},
   created() {
     this.roleId = this.$route.params.roleId;
     if (this.roleId) {
@@ -127,6 +160,7 @@ export default {
   data() {
     return {
       loading: false,
+      // 主分页
       current: 0,
       size: 10,
       total: 0,
@@ -141,26 +175,51 @@ export default {
       showSearch: true,
       // data
       userList: [],
+      unAssignedUserList: [],
       selectedUserIdList: [],
     }
   },
   methods: {
+    handleCurrentChange(newCur) {
+      this.current = newCur;
+      this.doSearch();
+    },
+    handleSizeChange(newSize) {
+      this.size = newSize;
+      this.doSearch();
+    },
     handleSelectionChange(newVals) {
       this.selectedUserIdList = newVals.map(item => item.id);
     },
-    // TODO 取消授权
-    handleUnAssign(userId) {
-      this.$notify.success("取消授权" + userId);
+    // 取消授权
+    handleUnAssign(userIds) {
+      // 如果是单独的对象，则转换为数组
+      if (!Array.isArray(userIds)) {
+        userIds = [userIds];
+      }
+      if (userIds.findIndex(userIds => userIds == -1) != -1) {
+        // 存在超级管理员，则不允许取消授权
+        this.$notify.error("超级管理员不允许取消授权 O.o");
+        return false;
+      }
+      this.deleteRequest("/admin/role/assignment/" + this.roleId ,userIds).then(({data}) => {
+        if (data.flag) {
+          this.$notify.success("取消授权成功 ^_^");
+          this.doSearch();
+        } else {
+          this.$notify.error("取消授权失败 O.o");
+        }
+      })
     },
-    // TODO 批量删除
+    // 批量删除
     handleDeleteSelected() {
-
+      this.handleUnAssign(this.selectedUserIdList);
     },
-    // TODO 新增授权用户
+    // 新增授权用户
     handleAdd() {
-
+      this.$refs.assignUserDialog.toggleDialogVisible();
     },
-    // TODO 搜索角色授权的用户
+    // 搜索角色授权的用户
     doSearch() {
       let params = {
         roleId: this.roleId,
@@ -168,12 +227,10 @@ export default {
         size: this.size,
         ...this.searchForm
       }
-      this.getRequest("/admin/role/assignment", params).then(({data})=> {
+      this.getRequest("/admin/role/assignment", params).then(({data}) => {
         if (data.flag) {
           this.userList = data.data.records;
           this.total = data.data.total;
-          console.log("结果")
-          console.log(this.userList)
         } else {
           this.$notify.error(data.message);
         }
@@ -187,8 +244,14 @@ export default {
         isDisabled: null
       }
     },
+    initPage() {
+      this.current = 0;
+      this.size = 10;
+      this.total = 0;
+    },
     refreshSearch() {
       this.initSearchForm();
+      this.initPage();
       this.doSearch()
     },
   },

@@ -364,9 +364,11 @@ export default {
     // page
     onSizeChange(newSize) {
       this.size = newSize
+      this.doSearch();
     },
     onCurChange(newCur) {
       this.current = newCur;
+      this.doSearch();
     },
     // 修改 disabled 状态
     handleDisableUpdate(row) {
@@ -477,7 +479,7 @@ export default {
         }
       });
     },
-    // 凸(艹皿艹 )，你妈的，axios为什么会解析Long时出现精度丢失啊，只能用字符串了
+    // todo 凸(艹皿艹 )，你妈的，axios为什么会解析Long时出现精度丢失啊，只能用字符串了
     // 关键是我还没找到其他法解决，真的不想每次都手动加个字符串解析啊 ['1','2']
     parseStringList2IntList(stringIdList) {
       let longIdList = [];
