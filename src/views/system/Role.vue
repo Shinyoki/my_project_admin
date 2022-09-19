@@ -188,7 +188,7 @@
     <!--    新增或编辑对话框-->
     <el-dialog
         :visible.sync="showAddOrEditDialog"
-        width="50%"
+        width="70%"
         :before-close="handleClose"
     >
       <div
@@ -446,7 +446,6 @@ export default {
         isDisabled: this.dialogForm.isDisabled,
         operateMode: this.dialogStatus
       }
-      console.log("状态：" + this.dialogStatus)
       switch (this.dialogStatus) {
         case 3:
           // eslint-disable-next-line no-case-declarations
@@ -460,8 +459,6 @@ export default {
           });
           break;
       }
-      console.log("提交表单");
-      console.log(params)
       this.$refs.addOrEditForm.validate((valid) => {
         if (valid) {
           this.postRequest("/admin/role", params).then(res => {

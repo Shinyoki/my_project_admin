@@ -76,6 +76,7 @@
       <!--      数据渲染-->
       <el-table
           v-else
+          v-loading="loading"
           ref="userTable"
           :data="userList"
           @selection-change="handleSelectionChange"
@@ -221,6 +222,7 @@ export default {
     },
     // 搜索角色授权的用户
     doSearch() {
+      this.loading = true
       let params = {
         roleId: this.roleId,
         current: this.current,
@@ -234,6 +236,9 @@ export default {
         } else {
           this.$notify.error(data.message);
         }
+        this.loading = false
+      }).catch(() => {
+        this.loading = false;
       })
     },
     initSearchForm() {

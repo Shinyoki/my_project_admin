@@ -5,7 +5,7 @@
         title="新增授权用户"
         width="70%"
     >
-      <el-empty v-if="!userList || userList.length === 0" description="没有查到尚未分配角色的用户~"/>
+      <el-empty v-loading="loading" v-if="!userList || userList.length === 0" description="没有查到尚未分配角色的用户~"/>
       <el-table
           v-else
           ref="userTable"
@@ -137,6 +137,8 @@ export default {
         } else {
           this.$notify.error(data.message)
         }
+        this.loading = false;
+      }).catch(() => {
         this.loading = false;
       })
 
