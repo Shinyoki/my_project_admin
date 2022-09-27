@@ -272,8 +272,8 @@
                     :data="dialogForm.resources"
                     show-checkbox
                     ref="resourceTree"
-                    node-key="id"
                     :default-checked-keys="selectedResourceIds"
+                    node-key="id"
                     :props="defaultProps">
                 </el-tree>
               </el-card>
@@ -459,6 +459,7 @@ export default {
           });
           break;
       }
+
       this.$refs.addOrEditForm.validate((valid) => {
         if (valid) {
           this.postRequest("/admin/role", params).then(res => {
@@ -475,15 +476,6 @@ export default {
           return false;
         }
       });
-    },
-    // todo 凸(艹皿艹 )，你妈的，axios为什么会解析Long时出现精度丢失啊，只能用字符串了
-    // 关键是我还没找到其他法解决，真的不想每次都手动加个字符串解析啊 ['1','2']
-    parseStringList2IntList(stringIdList) {
-      let longIdList = [];
-      stringIdList.forEach(id => {
-        longIdList.push(parseInt(id));
-      });
-      return longIdList;
     },
     // 编辑单个
     handleEditOne() {
@@ -508,8 +500,9 @@ export default {
       this.$refs.dialogTitle.innerHTML = "编辑可访资源";
       this.getRequest("/admin/role/resources/" + role.id).then(res => {
         if (res.data.flag) {
-          this.selectedResourceIds = this.parseStringList2IntList(res.data.data.checkedIds);
+          this.selectedResourceIds = res.data.data.checkedIds;
           this.dialogForm.resources = res.data.data.resourceTree;
+
         } else {
           this.$notify.error(res.data.message);
         }
@@ -523,7 +516,7 @@ export default {
       // 设置Menu
       this.getRequest("/admin/role/menus/" + role.id).then(res => {
         if (res.data.flag) {
-          this.selectedMenuIds = this.parseStringList2IntList(res.data.data.checkedIds);
+          this.selectedMenuIds = res.data.data.checkedIds;
           this.dialogForm.menus = res.data.data.menuTree
         } else {
           this.$notify.error(res.data.message);
