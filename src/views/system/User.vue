@@ -94,8 +94,8 @@
         </el-table-column>
         <el-table-column label="用户状态" prop="isDisabled" show-overflow-tooltip>
           <template slot-scope="scope">
-            <el-tag v-if="scope.row.isDisabled === 0" type="success">正常</el-tag>
-            <el-tag v-else type="danger">禁用</el-tag>
+            <el-tag v-if="scope.row.isDisabled === 0" size="mini" type="success">正常</el-tag>
+            <el-tag v-else size="mini" type="danger">禁用</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="创建时间" prop="createTime" show-overflow-tooltip>
@@ -118,6 +118,7 @@
                 size="mini"
                 type="text"
                 icon="el-icon-edit"
+                v-if="scope.row.id != -1"
                 @click="handleEdit(scope.row)"
             >编辑
             </el-button>
@@ -125,8 +126,9 @@
                 size="mini"
                 type="text"
                 style="color: red"
+                v-if="scope.row.id != -1"
                 icon="el-icon-delete"
-                @click="handleDelete(scope.row)"
+                @click="handleDelete(scope.row.id)"
             >删除
             </el-button>
           </template>
@@ -148,6 +150,7 @@
 
     <el-dialog
         :visible.sync="showAddOrEditDialog"
+        @close="initAddOrEditForm"
         width="400px"
         append-to-body
     >
@@ -180,6 +183,17 @@
                   placeholder="请输入用户名"
                   clearable
                   @keyup.enter.native="doSaveOrUpdate"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="密码" prop="password">
+              <el-input
+                type="password"
+                v-model="addOrEditForm.password"
+                placeholder="请输入密码"
+                clearable
+                @keyup.enter.native="doSaveOrUpdate"
               />
             </el-form-item>
           </el-col>
@@ -264,6 +278,7 @@ export default {
       addOrEditForm: {
         id: null,
         username: '',
+        password: '',
         email: '',
         isDisabled: 0,
         roleId: null,
@@ -306,6 +321,7 @@ export default {
       this.addOrEditForm = {
         id: null,
         username: '',
+        password: '',
         email: '',
         isDisabled: 0,
         roleId: null,
@@ -337,20 +353,37 @@ export default {
       this.addOrEditForm.username = user.username;
       this.addOrEditForm.isDisabled = user.isDisabled;
       this.showAddOrEditDialog = true;
-      console.log(this.roleList)
       this.getRequest("/admin/user/" + user.id + "/role").then(res => {
         if (res.data.flag) {
           this.addOrEditForm.roleId = res.data.data.id;
         }
       })
     },
-    // TODO 批量删除
+    // 批量删除
     handleDeleteBath() {
-
+      this.handleDelete(this.selectedUserIdList)
     },
-    // TODO 删除
-    handleDelete(user) {
-      console.log(user)
+    // 删除
+    handleDelete(userIds) {
+      if (!Array.isArray(userIds)) {
+        userIds = [userIds]
+      }
+      this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.deleteRequest("/admin/user", userIds).then(res => {
+          if (res.data.flag) {
+            this.$notify.success(res.data.message);
+            this.doSearch();
+          } else {
+            this.$notify.error(res.data.message);
+          }
+        })
+      }).catch(() => {
+        this.$notify.info('已取消删除');
+      });
     },
     // 新增用户
     handleAdd() {
@@ -358,12 +391,10 @@ export default {
       this.showAddOrEditDialog = true;
       this.$refs.dialogTitle.innerHTML = '新增用户';
     },
-    // TODO 新增或修改
+    // 新增或修改
     doSaveOrUpdate() {
       this.$refs.addOrEditForm.validate((valid) => {
         if (valid) {
-          console.log("上传");
-          console.log(this.addOrEditForm);
           this.postRequest("/admin/user", this.addOrEditForm).then(res => {
             if (res.data.flag) {
               this.$notify.success(res.data.message);
