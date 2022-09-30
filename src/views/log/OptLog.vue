@@ -250,7 +250,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="操作用户:">
-              {{ logInfoForm.username }}
+              <el-tag type="primary">{{ logInfoForm.username }}</el-tag>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -260,22 +260,22 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="操作类型:">
-              {{ logInfoForm.type }}
+              <el-tag type="primary">{{ logInfoForm.type }}</el-tag>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="请求方法:">
-              {{ logInfoForm.method }}
+              <el-tag type="primary">{{ logInfoForm.method }}</el-tag>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="请求资源:">
-              {{ logInfoForm.url }}
+              <el-tag type="primary">{{ logInfoForm.url }}</el-tag>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="处理方法:">
-              {{ logInfoForm.handler }}
+              <span v-html="calMethodHtml"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -495,7 +495,13 @@ export default {
       this.doSearch();
     },
   },
-  computed: {},
+  computed: {
+    calMethodHtml() {
+      const handler = this.logInfoForm.handler;
+      let index = handler.lastIndexOf('#');
+      return `${handler.substring(0, index)}<b>${handler.substring(index)}()</b>`
+    },
+  },
 }
 </script>
 
