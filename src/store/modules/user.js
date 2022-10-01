@@ -5,7 +5,9 @@ import axios from "axios";
 const user = {
     state: {
         username: '',
+        nickname: '',
         avatar: '',
+        email: '',
         roles: null,
         token: getToken()
     },
@@ -26,7 +28,9 @@ const user = {
         // 清除缓存
         logout: (state) => {
             state.username = ''
+            state.nickname = ''
             state.avatar = ''
+            state.email = ''
             state.token = ''
             state.roles = null
             state.isCollapsed = false
@@ -38,13 +42,25 @@ const user = {
         },
         // 登录
         doLogin: (state, userInfo) => {
+            console.log("得到的信息", userInfo)
             state.avatar = userInfo.avatar
-            state.username = userInfo.nickname
+            state.username = userInfo.username
+            state.nickname = userInfo.nickname
             state.token = userInfo.token
             state.roles = userInfo.roles
+            state.email = userInfo.email
             setToken(userInfo.token)
         },
-
+        // 更新用户头像
+        updateUserAvatar: (state, avatarAddress) => {
+            state.avatar = avatarAddress;
+        },
+        updateUserInfo: (state, userInfo) => {
+            state.username = userInfo.username
+            state.nickname = userInfo.nickname
+            state.email = userInfo.email
+            state.avatar = userInfo.avatar
+        }
     },
     // 异步 dispatch
     actions: {

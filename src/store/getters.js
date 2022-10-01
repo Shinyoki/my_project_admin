@@ -1,5 +1,7 @@
 const getters = {
-    nickname: state => state.user.username,
+    username: state => state.user.username,
+    nickname: state => state.user.nickname,
+    email: state => state.user.email,
     avatar: state => state.user.avatar,
     roles: state => state.user.roles,
     token: state => state.user.token,

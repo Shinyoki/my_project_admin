@@ -188,6 +188,7 @@
             <el-button
                 type="text"
                 size="mini"
+                icon="el-icon-plus"
                 v-if="scope.row.menuType === 0"
                 @click="handleAdd(scope.row)"
             >新增
@@ -195,12 +196,14 @@
             <el-button
                 type="text"
                 size="mini"
+                icon="el-icon-edit"
                 @click="handleEdit(scope.row)"
             >编辑
             </el-button>
             <el-button
                 type="text"
                 size="mini"
+                icon="el-icon-delete"
                 style="color: red"
                 @click="handleDelete(scope.row)"
             >删除

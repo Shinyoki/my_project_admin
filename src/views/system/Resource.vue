@@ -212,6 +212,28 @@
               :placeholder="addOrEditForm.resourceType == 1 ? '请输入接口名称' : '请输入模块名称'"
           />
         </el-form-item>
+        <!--        用户角色-->
+        <el-form-item v-if="addOrEditForm.resourceType == 1" prop="roles">
+          <el-select
+              v-model="addOrEditForm.roles"
+              multiple
+              placeholder="请选择角色"
+          >
+            <el-option
+                v-for="(item, index) of roleList"
+                :key="index"
+                :label="item.roleLabel"
+                :value="item.id"
+            >
+            </el-option>
+          </el-select>
+          <span slot="label">
+                <el-tooltip content="角色集合，指定谁可以访问该菜单，默认是'admin'" placement="top">
+                <i class="el-icon-question"></i>
+                </el-tooltip>
+                角色集合
+          </span>
+        </el-form-item>
         <el-form-item label="资源路径:" v-if="addOrEditForm.resourceType == 1" prop="url">
           <span slot="label">
                 <el-tooltip
@@ -256,6 +278,7 @@ export default {
   components: {RightToolbar},
   created() {
     this.doSearch();
+    this.listRoleLabels();
   },
   mounted() {
   },
@@ -268,6 +291,7 @@ export default {
         url: null,
         method: null,
       },
+      roleList: [],
       resourceTree: [],
       dialogForm: {
         id: null,
@@ -285,7 +309,8 @@ export default {
         isAnonymous: 0,
         parentId: 0,
         module: null,
-        resourceType: 1
+        resourceType: 1,
+        roles: [],
       },
       rules: {
         resourceName: [
@@ -296,6 +321,16 @@ export default {
     }
   },
   methods: {
+    // 查询角色
+    listRoleLabels() {
+      this.getRequest("/admin/roles/labels").then(res => {
+        if (res.data.flag) {
+          this.roleList = res.data.data;
+        } else {
+          this.$notify.error(res.data.message)
+        }
+      })
+    },
     handleCloseDialog() {
       this.showAddOrEditDialog = false;
       this.initAddOrEditForm();
@@ -309,7 +344,8 @@ export default {
         isAnonymous: 0,
         parentId: 0,
         module: null,
-        resourceType: 1
+        resourceType: 1,
+        roles: [],
       }
     },
     // 显示全部的树
@@ -373,7 +409,6 @@ export default {
     },
     // 编辑接口
     handleEdit(resource) {
-      console.log(resource)
       this.initAddOrEditForm();
       this.$refs.addOrEditDialogTitle.innerHTML = "编辑资源";
       this.addOrEditForm.id = resource.id;
@@ -384,6 +419,13 @@ export default {
       this.addOrEditForm.parentId = resource.parentId;
       this.addOrEditForm.module = resource.resourceName;
       this.addOrEditForm.resourceType = resource.resourceType;
+      this.getRequest("/admin/resource/" + resource.id + "/roles").then(({data}) => {
+        if (data.flag) {
+          if (data.data && data.data.length > 0) {
+            this.addOrEditForm.roles = data.data.map(item => item.id);
+          }
+        }
+      })
       if (this.addOrEditForm.resourceType == 1) {
         // 是接口，则检查接口
         this.rules = {
@@ -449,22 +491,23 @@ export default {
     // 添加或删除
     handleAddOrEdit() {
       let params = {
+        id: this.addOrEditForm.id,
         parentId: this.addOrEditForm.parentId,
         resourceName: this.addOrEditForm.resourceName,
         url: this.addOrEditForm.resourceType == 1 ? this.addOrEditForm.url : null,
         method: this.addOrEditForm.resourceType == 1 ? this.addOrEditForm.method : null,
         isAnonymous: this.addOrEditForm.isAnonymous,
-        resourceType: this.addOrEditForm.resourceType
+        resourceType: this.addOrEditForm.resourceType,
+        roleIds: this.addOrEditForm.roles,
       };
       if (!this.addOrEditForm.parentId) {
         // 不存在
         params.parentId = 0;
       }
-      console.log("参数", params)
 
       this.$refs.addOrEditForm.validate((valid) => {
         if (valid) {
-          console.log(params)
+          console.log("参数", params)
           this.postRequest("/admin/resource", params).then(({data}) => {
             if (data.flag) {
               this.$notify.success(data.message);
