@@ -187,6 +187,28 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
+            <!--        用户昵称-->
+            <el-form-item prop="nickname">
+              <!--              tooltip-->
+              <span slot="label">
+                <el-tooltip
+                    effect="dark"
+                    content="用户昵称，如 管理员"
+                    placement="top"
+                >
+                  <i class="el-icon-question"></i>
+                </el-tooltip>
+                用户昵称
+              </span>
+              <el-input
+                  v-model="addOrEditForm.nickname"
+                  placeholder="请输入用户昵称"
+                  clearable
+                  @keyup.enter.native="doSaveOrUpdate"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
             <el-form-item label="密码" prop="password">
               <el-input
                 type="password"
@@ -278,6 +300,7 @@ export default {
       addOrEditForm: {
         id: null,
         username: '',
+        nickname: '',
         password: '',
         email: '',
         isDisabled: 0,
@@ -286,6 +309,10 @@ export default {
       rules: {
         username: [
           {required: true, message: '请输入用户名', trigger: 'blur'},
+          {min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur'}
+        ],
+        nickname: [
+          {required: true, message: '请输入用户昵称', trigger: 'blur'},
           {min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur'}
         ],
         email: [
@@ -321,6 +348,7 @@ export default {
       this.addOrEditForm = {
         id: null,
         username: '',
+        nickname: '',
         password: '',
         email: '',
         isDisabled: 0,
@@ -351,6 +379,7 @@ export default {
       this.addOrEditForm.id = user.id;
       this.addOrEditForm.email = user.email;
       this.addOrEditForm.username = user.username;
+      this.addOrEditForm.nickname = user.nickname;
       this.addOrEditForm.isDisabled = user.isDisabled;
       this.showAddOrEditDialog = true;
       this.getRequest("/admin/user/" + user.id + "/role").then(res => {
@@ -394,6 +423,10 @@ export default {
     // 新增或修改
     doSaveOrUpdate() {
       this.$refs.addOrEditForm.validate((valid) => {
+        if (this.$refs.dialogTitle.innerHTML == '新增用户' && this.addOrEditForm.password.length <= 0) {
+          this.$notify.error("请填写用户密码");
+          return false;
+        }
         if (valid) {
           this.postRequest("/admin/user", this.addOrEditForm).then(res => {
             if (res.data.flag) {

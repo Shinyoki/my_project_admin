@@ -28,7 +28,7 @@
 
 **后端Github地址：**[https://github.com/Shinyoki/my_project_back](https://github.com/Shinyoki/my_project_back)
 
-**后台Github地址：**[/Shinyoki/my_project_admin](https://github.com/Shinyoki/my_project_admin)
+**后台Github地址：**[https://github.com/Shinyoki/my_project_admin](https://github.com/Shinyoki/my_project_admin)
 
 
 
@@ -116,6 +116,7 @@ TODO ....
 TODO ...
 # 项目结构
 
+<pre>
 ├─package.json	依赖		
 ├─vue.config.js	 vue配置
 ├─src
@@ -145,3 +146,4 @@ TODO ...
 ├─public
 |   ├─favicon.ico
 |   └index.html
+</pre>
